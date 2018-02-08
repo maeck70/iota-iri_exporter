@@ -20,6 +20,22 @@ With the proposed metrics exporting breakdown, federation of node monitoring sho
 # Use
 
 Start the iota-iri_exporter program from the commandline.
+
+usage: iota-iri_exporter [<flags>]
+
+Flags:
+  --help                        Show context-sensitive help (also try --help-long and --help-man).
+  --web.listen-address=":9187"  Address to listen on for web interface and telemetry.
+  --web.telemetry-path="/metrics"  
+                                Path under which to expose metrics.
+  --web.iri-path="http://localhost:14265"  
+                                URI of the IOTA IRI Node to scrape.
+  --version                     Show application version.
+  --log.level="info"            Only log messages with the given severity or above. Valid levels: [debug, info, warn, error, fatal]
+  --log.format="logger:stderr"  Set the log target and format. Example: "logger:syslog?appname=bob&local=7" or "logger:stdout?json=true"
+
+
+
 Point your browser at http:\\localhost:9311\metrics
 
 Node metrics should show.
