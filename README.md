@@ -11,9 +11,9 @@ As I am experimenting with building IRI nodes that use a minimum of resources, i
 
 It is my goal of this project to provide the same functionality as iota-prom-exporter in a different package with the option to run multiple exporters to match the iota-prom-exporter exports.
 
-1. iota-iri_exporter (work in progress): Export the main IRI metrics for consumption by Prometheus
-2. iota-tangle_exporter (planned): Export tangle metrics that pertain to the whole tangle, not this particular node 
-3. bitfinex_exporter (planned): Export market prices for popular crypto
+1. [ ] iota-iri_exporter (work in progress): Export the main IRI metrics for consumption by Prometheus
+2. [ ] iota-tangle_exporter (planned): Export tangle metrics that pertain to the whole tangle, not this particular node 
+3. [ ] bitfinex_exporter (planned): Export market prices for popular crypto
 
 With the proposed metrics exporting breakdown, federation of node monitoring should become more efficient and logical.  
 
