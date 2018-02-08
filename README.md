@@ -21,7 +21,7 @@ With the proposed metrics exporting breakdown, federation of node monitoring sho
 
 Start the iota-iri_exporter program from the commandline.
 
-example: iota-iri_exporter --web.listen-address=":9311" --web.iri-path="http://myiotanode:14265"
+example: `iota-iri_exporter --web.listen-address=":9311" --web.iri-path="http://myiotanode:14265"`
 
 usage: iota-iri_exporter [\<flags\>]
 ```
