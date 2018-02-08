@@ -1,0 +1,234 @@
+package main
+
+import (
+	"fmt"
+	"net/http"
+	"runtime"
+
+	"github.com/iotaledger/giota"
+	"github.com/prometheus/client_golang/prometheus"
+	"github.com/prometheus/client_golang/prometheus/promhttp"
+	"github.com/prometheus/common/log"
+	"gopkg.in/alecthomas/kingpin.v2"
+)
+
+// Version is set during build to the git describe version
+// (semantic version)-(commitish) form.
+var Version = "0.0.1"
+
+var (
+	listenAddress = kingpin.Flag("web.listen-address", "Address to listen on for web interface and telemetry.").Default(":9187").String()
+	metricPath    = kingpin.Flag("web.telemetry-path", "Path under which to expose metrics.").Default("/metrics").String()
+	targetAddress = kingpin.Flag("web.iri-path", "URI of the IOTA IRI Node to scrape.").Default("http://localhost:14265").String()
+)
+
+const (
+	namespace = "iota-iri"
+)
+
+type Exporter struct {
+	iriAddress                                string
+
+	iota_node_info_duration                   prometheus.Gauge
+	iota_node_info_available_processors       prometheus.Gauge
+	iota_node_info_free_memory                prometheus.Gauge
+	iota_node_info_max_memory                 prometheus.Gauge
+	iota_node_info_total_memory               prometheus.Gauge
+	iota_node_info_latest_milestone           prometheus.Gauge
+	iota_node_info_latest_subtangle_milestone prometheus.Gauge
+	iota_node_info_total_neighbors            prometheus.Gauge
+	iota_node_info_total_tips                 prometheus.Gauge
+	iota_node_info_total_transactions_queued  prometheus.Gauge
+
+	iota_node_info_totalScrapes               prometheus.Counter
+}
+
+func NewExporter(iriAddress string) *Exporter {
+	return &Exporter{
+		iriAddress: iriAddress,
+
+		iota_node_info_duration: prometheus.NewGauge(
+			prometheus.GaugeOpts{
+				//Namespace: namespace,
+				//Subsystem: "exporter",
+				//Name: "duration",
+				Name: "iota_node_info_duration",
+				Help: "Response time of getting Node Info.",
+			}),
+
+		iota_node_info_available_processors: prometheus.NewGauge(
+			prometheus.GaugeOpts{
+				//Namespace: namespace,
+				//Subsystem: "exporter",
+				//Name: "available_processors",
+				Name: "iota_node_info_available_processors",
+				Help: "Number of cores available in this Node.",
+			}),
+
+		iota_node_info_free_memory: prometheus.NewGauge(
+			prometheus.GaugeOpts{
+				//Namespace: namespace,
+				//Subsystem: "exporter",
+				//Name: "free_memory",
+				Name: "iota_node_info_free_memory",
+				Help: "Free Memory in this IRI instance.",
+			}),
+
+		iota_node_info_max_memory: prometheus.NewGauge(
+			prometheus.GaugeOpts{
+				//Namespace: namespace,
+				//Subsystem: "exporter",
+				//Name: "max_memory",
+				Name: "iota_node_info_max_memory",
+				Help: "Max Memory in this IRI instance.",
+			}),
+
+		iota_node_info_total_memory: prometheus.NewGauge(
+			prometheus.GaugeOpts{
+				//Namespace: namespace,
+				//Subsystem: "exporter",
+				//Name: "total_memory",
+				Name: "iota_node_info_total_memory",
+				Help: "Total Memory in this IRI instance.",
+			}),
+
+		iota_node_info_latest_milestone: prometheus.NewGauge(
+			prometheus.GaugeOpts{
+				//Namespace: namespace,
+				//Subsystem: "exporter",
+				//Name: "latest_milestone",
+				Name: "iota_node_info_latest_milestone",
+				Help: "Tangle milestone at the interval.",
+			}),
+
+		iota_node_info_latest_subtangle_milestone: prometheus.NewGauge(
+			prometheus.GaugeOpts{
+				//Namespace: namespace,
+				//Subsystem: "exporter",
+				//Name: "latest_subtangle_milestone",
+				Name: "iota_node_info_latest_subtangle_milestone",
+				Help: "Subtangle milestone at the interval.",
+			}),
+
+		iota_node_info_total_neighbors: prometheus.NewGauge(
+			prometheus.GaugeOpts{
+				//Namespace: namespace,
+				//Subsystem: "exporter",
+				//Name: "total_neighbors",
+				Name: "iota_node_info_total_neighbors",
+				Help: "Total neighbors at the interval.",
+			}),
+
+		iota_node_info_total_tips: prometheus.NewGauge(
+			prometheus.GaugeOpts{
+				//Namespace: namespace,
+				//Subsystem: "exporter",
+				//Name: "total_tips",
+				Name: "iota_node_info_total_tips",
+				Help: "Total tips at the interval.",
+			}),
+
+		iota_node_info_total_transactions_queued: prometheus.NewGauge(
+			prometheus.GaugeOpts{
+				//Namespace: namespace,
+				//Subsystem: "exporter",
+				//Name: "total_transactions_queued",
+				Name: "iota_node_info_total_transactions_queued",
+				Help: "Total open txs at the interval.",
+			}),
+
+		iota_node_info_totalScrapes: prometheus.NewCounter(
+			prometheus.CounterOpts{
+				//Namespace: namespace,
+				//Subsystem: "exporter",
+				//Name: "scrapes_total",
+				Name: "iota_node_info_scrapes_total",
+				Help: "Total number of scrapes.",
+			}),
+	}
+}
+
+func (e *Exporter) Describe(ch chan<- *prometheus.Desc) {
+
+	ch <- e.iota_node_info_duration.Desc()
+	ch <- e.iota_node_info_available_processors.Desc()
+	ch <- e.iota_node_info_free_memory.Desc()
+	ch <- e.iota_node_info_max_memory.Desc()
+	ch <- e.iota_node_info_total_memory.Desc()
+	ch <- e.iota_node_info_latest_milestone.Desc()
+	ch <- e.iota_node_info_latest_subtangle_milestone.Desc()
+	ch <- e.iota_node_info_total_neighbors.Desc()
+	ch <- e.iota_node_info_total_tips.Desc()
+	ch <- e.iota_node_info_total_transactions_queued.Desc()
+
+	ch <- e.iota_node_info_totalScrapes.Desc()
+}
+
+func (e *Exporter) Collect(ch chan<- prometheus.Metric) {
+	e.scrape(ch)
+	ch <- e.iota_node_info_duration
+	ch <- e.iota_node_info_available_processors
+	ch <- e.iota_node_info_free_memory
+	ch <- e.iota_node_info_max_memory
+	ch <- e.iota_node_info_total_memory
+	ch <- e.iota_node_info_latest_milestone
+	ch <- e.iota_node_info_latest_subtangle_milestone
+	ch <- e.iota_node_info_total_neighbors
+	ch <- e.iota_node_info_total_tips
+	ch <- e.iota_node_info_total_transactions_queued
+
+	ch <- e.iota_node_info_totalScrapes
+}
+
+func (e *Exporter) scrape(ch chan<- prometheus.Metric) {
+
+	// Get the actual responses for the node
+	api := giota.NewAPI(e.iriAddress, nil)
+	resp, err := api.GetNodeInfo()
+
+	if err != nil {
+		log.Fatal(err)
+	}
+
+	// Set response values into the predefined metrics
+	e.iota_node_info_duration.Set(float64(resp.Duration))
+	e.iota_node_info_available_processors.Set(float64(resp.JREAvailableProcessors))
+	e.iota_node_info_free_memory.Set(float64(resp.JREFreeMemory))
+	e.iota_node_info_max_memory.Set(float64(resp.JREMaxMemory))
+	e.iota_node_info_total_memory.Set(float64(resp.JRETotalMemory))
+	e.iota_node_info_latest_milestone.Set(float64(resp.LatestMilestoneIndex))
+	e.iota_node_info_latest_subtangle_milestone.Set(float64(resp.LatestSolidSubtangleMilestoneIndex))
+	e.iota_node_info_total_neighbors.Set(float64(resp.Neighbors))
+	e.iota_node_info_total_tips.Set(float64(resp.Tips))
+	e.iota_node_info_total_transactions_queued.Set(float64(resp.TransactionsToRequest))
+
+	e.iota_node_info_totalScrapes.Inc()
+}
+
+func main() {
+	kingpin.Version(fmt.Sprintf("iota-iri_exporter %s (built with %s)\n", Version, runtime.Version()))
+	log.AddFlags(kingpin.CommandLine)
+	kingpin.Parse()
+
+	// landingPage contains the HTML served at '/'.
+	// TODO: Make this nicer and more informative.
+	var landingPage = []byte(`<html>
+	<head><title>Iota-IRI Exporter</title></head>
+	<body>
+	<h1>Iota-IRI Node Exporter</h1>
+	<p><a href='` + *metricPath + `'>Metrics</a></p>
+	</body>
+	</html>
+	`)
+
+	exporter := NewExporter(*targetAddress)
+	prometheus.MustRegister(exporter)
+
+	http.Handle(*metricPath, promhttp.Handler())
+	http.HandleFunc("/", func(w http.ResponseWriter, r *http.Request) {
+		w.Write(landingPage) // nolint: errcheck
+	})
+
+	log.Infof("Starting %s_exporter Server on port %s", namespace, *listenAddress)
+	log.Fatal(http.ListenAndServe(*listenAddress, nil))
+}
