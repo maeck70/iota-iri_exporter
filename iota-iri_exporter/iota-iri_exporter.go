@@ -1,14 +1,27 @@
 package main
 
 import (
-	"log"
+	"fmt"
 	"net/http"
+	"runtime"
 
-	//"github.com/iotaledger/giota"
+	"github.com/iotaledger/giota"
 	"github.com/prometheus/client_golang/prometheus"
 	"github.com/prometheus/client_golang/prometheus/promhttp"
+	"github.com/prometheus/common/log"
+	"gopkg.in/alecthomas/kingpin.v2"
+	//"github.com/maeck70/iota-iri_exporter/mock_getnodeinfo"
+)
 
-	"github.com/maeck70/iota-iri_exporter/mock_getnodeinfo"
+// Version is set during build to the git describe version
+// (semantic version)-(commitish) form.
+var Version = "0.0.1"
+
+var (
+	listenAddress = kingpin.Flag("web.listen-address", "Address to listen on for web interface and telemetry.").Default(":9187").String()
+	metricPath    = kingpin.Flag("web.telemetry-path", "Path under which to expose metrics.").Default("/metrics").String()
+	targetAddress = kingpin.Flag("web.iri-path", "URI of the IOTA IRI Node to scrape.").Default("http://localhost:14265").String()
+	//targetAddress = kingpin.Flag("web.iri-path", "URI of the IOTA IRI Node to scrape.").Default("http://node21.heliumsushi.com:14265").String()
 )
 
 var (
@@ -95,31 +108,50 @@ func init() {
 
 }
 
-func main() {
+/*func NewExporter() *Exporter {
+	return &Exporter{
+
+		iota_node_info_latest_milestone: prometheus.NewGauge(
+			prometheus.GaugeOpts{
+				Name: "iota_node_info_latest_milestone",
+				Help: "Tangle milestone at the interval.",
+				Subsystem: exporter,
+			}),
+
+		iota_node_info_latest_subtangle_milestone: prometheus.NewGauge(
+			prometheus.GaugeOpts{
+				Name: "iota_node_info_latest_subtangle_milestone",
+				Help: "Subtangle milestone at the interval.",
+				Subsystem: exporter,
+			}),
+	}
+}
+*/
+
+func iriGetNodeInfo() {
 
 	// Get the actual responses for the node
-	/*
-	api := giota.NewAPI("http://node21.heliumsushi.com:14265", nil)
+	//api := giota.NewAPI("http://node21.heliumsushi.com:14265", nil)
+	api := giota.NetAPI(targetAddress, nil)
 	resp, err := api.GetNodeInfo()
 
 	if err != nil {
 		log.Fatal(err)
 	}
-	*/
 
-	// Mock the response from the node
-	resp := mock_getnodeinfo.GetNodeInfo{
-		Duration: 100,
-		JREAvailableProcessors : 4,
-		JREFreeMemory : 5000000,
-		JREMaxMemory : 8500000,
-		JRETotalMemory : 11000000,
-		LatestMilestoneIndex : 454678,
-		LatestSolidSubtangleMilestoneIndex : 454677,
-		Neighbors : 7,
-		Tips : 6555,
-		TransactionsToRequest : 12,
-	}
+	//// Mock the response from the node
+	//resp := mock_getnodeinfo.GetNodeInfo{
+	//	Duration: 100,
+	//	JREAvailableProcessors : 4,
+	//	JREFreeMemory : 5000000,
+	//	JREMaxMemory : 8500000,
+	//	JRETotalMemory : 11000000,
+	//	LatestMilestoneIndex : 454678,
+	//	LatestSolidSubtangleMilestoneIndex : 454677,
+	//	Neighbors : 7,
+	//	Tips : 6555,
+	//	TransactionsToRequest : 12,
+	//}
 
 	iota_node_http_request_counter.Inc()
 	iota_node_info_duration.Set(float64(resp.Duration))
@@ -133,9 +165,32 @@ func main() {
 	iota_node_info_total_tips.Set(float64(resp.Tips))
 	iota_node_info_total_transactions_queued.Set(float64(resp.TransactionsToRequest))
 
-	// The Handler function provides a default handler to expose metrics
-	// Via an HTTP server. "/metrics" is the usual endpoint for that.
-	http.Handle("/metrics", promhttp.Handler())
-	log.Fatal(http.ListenAndServe(":9311", nil))
+}
 
+func main() {
+	kingpin.Version(fmt.Sprintf("iota-iri_exporter %s (built with %s)\n", Version, runtime.Version()))
+	log.AddFlags(kingpin.CommandLine)
+	kingpin.Parse()
+
+	// landingPage contains the HTML served at '/'.
+	// TODO: Make this nicer and more informative.
+	var landingPage = []byte(`<html>
+	<head><title>Iota-IRI Exporter</title></head>
+	<body>
+	<h1>Iota-IRI Node Exporter</h1>
+	<p><a href='` + *metricPath + `'>Metrics</a></p>
+	</body>
+	</html>
+	`)
+
+	/*	exporter := NewExporter()
+		prometheus.MustRegister(exporter)
+	*/
+	http.Handle(*metricPath, promhttp.Handler())
+	http.HandleFunc("/", func(w http.ResponseWriter, r *http.Request) {
+		w.Write(landingPage) // nolint: errcheck
+	})
+
+	log.Infof("Starting Server: %s", *listenAddress)
+	log.Fatal(http.ListenAndServe(*listenAddress, nil))
 }
