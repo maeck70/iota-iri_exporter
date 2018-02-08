@@ -93,7 +93,6 @@ func init() {
 
 }
 
-
 func main() {
 
 	api := giota.NewAPI("http://node21.heliumsushi.com:14265", nil)
