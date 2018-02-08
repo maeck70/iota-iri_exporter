@@ -16,3 +16,10 @@ It is my goal of this project to provide the same functionality as iota-prom-exp
 3. bitfinex_exporter (planned): Export market prices for popular crypto
 
 With the proposed metrics exporting breakdown, federation of node monitoring should become more efficient and logical.  
+
+# Use
+
+Start the iota-iri_exporter program from the commandline.
+Point your browser at http:\\localhost:9311\metrics
+
+Node metrics should show.

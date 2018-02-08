@@ -4,9 +4,11 @@ import (
 	"log"
 	"net/http"
 
-	"github.com/iotaledger/giota"
+	//"github.com/iotaledger/giota"
 	"github.com/prometheus/client_golang/prometheus"
 	"github.com/prometheus/client_golang/prometheus/promhttp"
+
+	"github.com/maeck70/iota-iri_exporter/mock_getnodeinfo"
 )
 
 var (
@@ -95,11 +97,28 @@ func init() {
 
 func main() {
 
+	// Get the actual responses for the node
+	/*
 	api := giota.NewAPI("http://node21.heliumsushi.com:14265", nil)
 	resp, err := api.GetNodeInfo()
 
 	if err != nil {
 		log.Fatal(err)
+	}
+	*/
+
+	// Mock the response from the node
+	resp := mock_getnodeinfo.GetNodeInfo{
+		Duration: 100,
+		JREAvailableProcessors : 4,
+		JREFreeMemory : 5000000,
+		JREMaxMemory : 8500000,
+		JRETotalMemory : 11000000,
+		LatestMilestoneIndex : 454678,
+		LatestSolidSubtangleMilestoneIndex : 454677,
+		Neighbors : 7,
+		Tips : 6555,
+		TransactionsToRequest : 12,
 	}
 
 	iota_node_http_request_counter.Inc()
