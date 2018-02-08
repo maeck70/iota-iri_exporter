@@ -93,11 +93,10 @@ func init() {
 
 }
 
-func handler(w http.ResponseWriter, r *http.Request) {
-	filters := r.URL.Query()["collect[]"]
-	//log.Debugln("collect query:", filters)
 
-	api := giota.NewAPI("http://node01.heliumsushi.com:14265", nil)
+func main() {
+
+	api := giota.NewAPI("http://node21.heliumsushi.com:14265", nil)
 	resp, err := api.GetNodeInfo()
 
 	if err != nil {
@@ -116,24 +115,9 @@ func handler(w http.ResponseWriter, r *http.Request) {
 	iota_node_info_total_tips.Set(float64(resp.Tips))
 	iota_node_info_total_transactions_queued.Set(float64(resp.TransactionsToRequest))
 
-	// Delegate http serving to Prometheus client library, which will call collector.Collect.
-	h := promhttp.HandlerFor(gatherers,
-		promhttp.HandlerOpts{
-			ErrorLog:      log.NewErrorLogger(),
-			ErrorHandling: promhttp.ContinueOnError,
-		})
-	h.ServeHTTP(w, r)
-}
-
-func main() {
-
-	/*	log.Infoln("Starting node_exporter", version.Info())
-		log.Infoln("Build context", version.BuildContext())
-	*/
 	// The Handler function provides a default handler to expose metrics
 	// Via an HTTP server. "/metrics" is the usual endpoint for that.
-	http.HandleFunc("/metrics", prometheus.InstrumentHandlerFunc("prometheus", handler))
-	//http.Handle("/metrics", promhttp.Handler())
+	http.Handle("/metrics", promhttp.Handler())
 	log.Fatal(http.ListenAndServe(":9311", nil))
 
 }
