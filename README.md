@@ -1,10 +1,12 @@
 # iota-iri_exporter
 
-This is an implementation of the iota-prom-exporter in Go that is typically used by Iota IRI nodes.
+This is an implementation of the functionality of iota-prom-exporter in Go that is typically used by Iota IRI nodes for Prometheus/Grafana monitoring.
+While creating the exporter in Go I decided to do this as an reimplementation, not as a straight port. The output is compatible with iota-prom-exporter, however, the exporter framwork is different. Interpretaton of the metrics is rebuild to match the iota-prom-exporter.
+
 I started this project to port the key IRI metrics to an exporter program written in Go due to the following concerns with the existing iota-prom-exporter written in node.js:
 
-1. One single (simple) executable that provides the input for Prometheus. 
-2. Only perform monitoring of the IRI node (no external info like BTC, ETH and Iota price).
+1. One single (simple) executable that provides the key IRI status metrics for Prometheus. 
+2. Only perform monitoring of the IRI node (no external metrics like BTC, ETH and Iota price).
 3. Stability by using the same model as the stock node_exporter as provided by Prometheus.
 
 As I am experimenting with building IRI nodes that use a minimum of resources, it became clear to me that I did not want the additional overhead of running a node.us program. In addition to that, the iota-node-exporter is also providing insight into external info like BTC, ETH and Iota market price which only adds unnecessary resources to the node.

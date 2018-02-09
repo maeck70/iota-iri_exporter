@@ -27,7 +27,7 @@ const (
 )
 
 type Exporter struct {
-	iriAddress                                string
+	iriAddress string
 
 	iota_node_info_duration                   prometheus.Gauge
 	iota_node_info_available_processors       prometheus.Gauge
@@ -39,8 +39,10 @@ type Exporter struct {
 	iota_node_info_total_neighbors            prometheus.Gauge
 	iota_node_info_total_tips                 prometheus.Gauge
 	iota_node_info_total_transactions_queued  prometheus.Gauge
-
 	iota_node_info_totalScrapes               prometheus.Counter
+
+	iota_neighbor_info_total_neighbors prometheus.Gauge
+	iota_neighbors_new_transactions    *prometheus.GaugeVec
 }
 
 func NewExporter(iriAddress string) *Exporter {
@@ -145,6 +147,26 @@ func NewExporter(iriAddress string) *Exporter {
 				Name: "iota_node_info_scrapes_total",
 				Help: "Total number of scrapes.",
 			}),
+
+		iota_neighbor_info_total_neighbors: prometheus.NewGauge(
+			prometheus.GaugeOpts{
+				//Namespace: namespace,
+				//Subsystem: "exporter",
+				//Name: "total_neighbors_ws",
+				Name: "iota_neighbor_info_total_neighbors",
+				Help: "Total number of neighbors as received in the getNeighbors ws call.",
+			}),
+
+		iota_neighbors_new_transactions: prometheus.NewGaugeVec(
+			prometheus.GaugeOpts{
+				//Namespace: namespace,
+				//Subsystem: "exporter",
+				//Name: "neighbors_new_transactions",
+				Name: "iota_neighbors_new_transactions",
+				Help: "Number of New Transactions for a specific Neighbor.",
+			},
+			[]string{"id"},
+		),
 	}
 }
 
@@ -160,8 +182,10 @@ func (e *Exporter) Describe(ch chan<- *prometheus.Desc) {
 	ch <- e.iota_node_info_total_neighbors.Desc()
 	ch <- e.iota_node_info_total_tips.Desc()
 	ch <- e.iota_node_info_total_transactions_queued.Desc()
-
 	ch <- e.iota_node_info_totalScrapes.Desc()
+
+	ch <- e.iota_neighbor_info_total_neighbors.Desc()
+	e.iota_neighbors_new_transactions.Describe(ch)
 }
 
 func (e *Exporter) Collect(ch chan<- prometheus.Metric) {
@@ -176,33 +200,61 @@ func (e *Exporter) Collect(ch chan<- prometheus.Metric) {
 	ch <- e.iota_node_info_total_neighbors
 	ch <- e.iota_node_info_total_tips
 	ch <- e.iota_node_info_total_transactions_queued
-
 	ch <- e.iota_node_info_totalScrapes
+
+	ch <- e.iota_neighbor_info_total_neighbors
+	//ch <- e.iota_neighbors_new_transactions
+	e.iota_neighbors_new_transactions.Collect(ch)
 }
 
 func (e *Exporter) scrape(ch chan<- prometheus.Metric) {
 
-	// Get the actual responses for the node
+	// Get getNodeInfo metrics
 	api := giota.NewAPI(e.iriAddress, nil)
 	resp, err := api.GetNodeInfo()
 
-	if err != nil {
-		log.Fatal(err)
+	if err == nil {
+		// Set response values into the predefined metrics
+		e.iota_node_info_duration.Set(float64(resp.Duration))
+		e.iota_node_info_available_processors.Set(float64(resp.JREAvailableProcessors))
+		e.iota_node_info_free_memory.Set(float64(resp.JREFreeMemory))
+		e.iota_node_info_max_memory.Set(float64(resp.JREMaxMemory))
+		e.iota_node_info_total_memory.Set(float64(resp.JRETotalMemory))
+		e.iota_node_info_latest_milestone.Set(float64(resp.LatestMilestoneIndex))
+		e.iota_node_info_latest_subtangle_milestone.Set(float64(resp.LatestSolidSubtangleMilestoneIndex))
+		e.iota_node_info_total_neighbors.Set(float64(resp.Neighbors))
+		e.iota_node_info_total_tips.Set(float64(resp.Tips))
+		e.iota_node_info_total_transactions_queued.Set(float64(resp.TransactionsToRequest))
+
+		e.iota_node_info_totalScrapes.Inc()
+	} else {
+		log.Info(err)
 	}
 
-	// Set response values into the predefined metrics
-	e.iota_node_info_duration.Set(float64(resp.Duration))
-	e.iota_node_info_available_processors.Set(float64(resp.JREAvailableProcessors))
-	e.iota_node_info_free_memory.Set(float64(resp.JREFreeMemory))
-	e.iota_node_info_max_memory.Set(float64(resp.JREMaxMemory))
-	e.iota_node_info_total_memory.Set(float64(resp.JRETotalMemory))
-	e.iota_node_info_latest_milestone.Set(float64(resp.LatestMilestoneIndex))
-	e.iota_node_info_latest_subtangle_milestone.Set(float64(resp.LatestSolidSubtangleMilestoneIndex))
-	e.iota_node_info_total_neighbors.Set(float64(resp.Neighbors))
-	e.iota_node_info_total_tips.Set(float64(resp.Tips))
-	e.iota_node_info_total_transactions_queued.Set(float64(resp.TransactionsToRequest))
+	// Get getNeighbors metrics
+	resp2, err := api.GetNeighbors()
 
-	e.iota_node_info_totalScrapes.Inc()
+	/* Neighbors
+	"address": "d5c52a6a.ftth.concepts.nl:15600",
+	"connectionType": "tcp",
+	"numberOfAllTransactions": 0,
+	"numberOfInvalidTransactions": 0,
+	"numberOfNewTransactions": 0,
+	"numberOfRandomTransactionRequests": 0,
+	"numberOfSentTransactions": 0
+	*/
+
+	if err == nil {
+		neighbor_cnt := len(resp2.Neighbors)
+		e.iota_neighbor_info_total_neighbors.Set(float64(neighbor_cnt))
+		for n := 1; n < neighbor_cnt; n++ {
+			e.iota_neighbors_new_transactions.WithLabelValues(string(resp2.Neighbors[n].Address)).Set(float64(resp2.Neighbors[n].NumberOfNewTransactions))
+		}
+
+	} else {
+		log.Info(err)
+	}
+
 }
 
 func main() {
