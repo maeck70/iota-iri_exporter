@@ -48,6 +48,15 @@ type Exporter struct {
 	iota_neighbors_invalid_transactions       *prometheus.GaugeVec
 	iota_neighbors_sent_transactions          *prometheus.GaugeVec
 	iota_neighbors_active                     *prometheus.GaugeVec
+	iota_zmq_seen_tx_count                    prometheus.Gauge
+	iota_zmq_txs_with_value_count prometheus.Gauge
+	iota_zmq_confirmed_tx_count prometheus.Gauge
+	iota_zmq_to_request prometheus.Gauge
+	iota_zmq_to_process prometheus.Gauge
+	iota_zmq_to_broadcast prometheus.Gauge
+	iota_zmq_to_reply prometheus.Gauge
+	iota_zmq_total_transactions prometheus.Gauge
+
 }
 
 func NewExporter(iriAddress string) *Exporter {
@@ -236,6 +245,78 @@ func NewExporter(iriAddress string) *Exporter {
 			},
 			[]string{"id"},
 		),
+
+		iota_zmq_seen_tx_count: prometheus.NewGauge(
+			prometheus.GaugeOpts{
+				//Namespace: namespace,
+				//Subsystem: "zmq",
+				//Name: "zmq_seen_tx_count",
+				Name: "iota_zmq_seen_tx_count",
+				Help: "Count of transactions seen by zeroMQ.",
+			}),
+
+		iota_zmq_txs_with_value_count: prometheus.NewGauge(
+			prometheus.GaugeOpts{
+				//Namespace: namespace,
+				//Subsystem: "zmq",
+				//Name: "zmq_txs_with_value_count",
+				Name: "iota_zmq_txs_with_value_count",
+				Help: "Count of transactions seen by zeroMQ that have a non-zero value.",
+			}),
+
+		iota_zmq_confirmed_tx_count: prometheus.NewGauge(
+			prometheus.GaugeOpts{
+				//Namespace: namespace,
+				//Subsystem: "zmq",
+				//Name: "zmq_confirmed_tx_count",
+				Name: "iota_zmq_confirmed_tx_count",
+				Help: "Count of transactions confirmed by zeroMQ.",
+			}),
+
+		iota_zmq_to_process: prometheus.NewGauge(
+			prometheus.GaugeOpts{
+				//Namespace: namespace,
+				//Subsystem: "zmq",
+				//Name: "zmq_to_process",
+				Name: "iota_zmq_to_process",
+				Help: "toProcess from RSTAT output of ZMQ.",
+			}),
+
+		iota_zmq_to_broadcast: prometheus.NewGauge(
+			prometheus.GaugeOpts{
+				//Namespace: namespace,
+				//Subsystem: "zmq",
+				//Name: "zmq_to_broadcast",
+				Name: "iota_zmq_to_broadcast",
+				Help: "toBroadcast from RSTAT output of ZMQ.",
+			}),
+
+		iota_zmq_to_request: prometheus.NewGauge(
+			prometheus.GaugeOpts{
+				//Namespace: namespace,
+				//Subsystem: "zmq",
+				//Name: "zmq_to_request",
+				Name: "iota_zmq_to_request",
+				Help: "toRequest from RSTAT output of ZMQ.",
+			}),
+
+		iota_zmq_to_reply: prometheus.NewGauge(
+			prometheus.GaugeOpts{
+				//Namespace: namespace,
+				//Subsystem: "zmq",
+				//Name: "zmq_to_reply",
+				Name: "iota_zmq_to_reply",
+				Help: "toReply from RSTAT output of ZMQ.",
+			}),
+
+		iota_zmq_total_transactions: prometheus.NewGauge(
+			prometheus.GaugeOpts{
+				//Namespace: namespace,
+				//Subsystem: "zmq",
+				//Name: "zmq_total_transactions",
+				Name: "iota_zmq_total_transactions",
+				Help: "totalTransactions from RSTAT output of ZMQ.",
+			}),
 	}
 }
 
@@ -262,6 +343,15 @@ func (e *Exporter) Describe(ch chan<- *prometheus.Desc) {
 	e.iota_neighbors_invalid_transactions.Describe(ch)
 	e.iota_neighbors_sent_transactions.Describe(ch)
 	e.iota_neighbors_active.Describe(ch)
+
+	ch <- e.iota_zmq_seen_tx_count.Desc()
+	ch <- e.iota_zmq_txs_with_value_count.Desc()
+	ch <- e.iota_zmq_confirmed_tx_count.Desc()
+	ch <- e.iota_zmq_to_process.Desc()
+	ch <- e.iota_zmq_to_broadcast.Desc()
+	ch <- e.iota_zmq_to_request.Desc()
+	ch <- e.iota_zmq_to_reply.Desc()
+	ch <- e.iota_zmq_total_transactions.Desc()
 }
 
 func (e *Exporter) Collect(ch chan<- prometheus.Metric) {
@@ -287,6 +377,15 @@ func (e *Exporter) Collect(ch chan<- prometheus.Metric) {
 	e.iota_neighbors_invalid_transactions.Collect(ch)
 	e.iota_neighbors_sent_transactions.Collect(ch)
 	e.iota_neighbors_active.Collect(ch)
+
+	ch <- e.iota_zmq_seen_tx_count
+	ch <- e.iota_zmq_txs_with_value_count
+	ch <- e.iota_zmq_confirmed_tx_count
+	ch <- e.iota_zmq_to_process
+	ch <- e.iota_zmq_to_broadcast
+	ch <- e.iota_zmq_to_request
+	ch <- e.iota_zmq_to_reply
+	ch <- e.iota_zmq_total_transactions
 }
 
 func (e *Exporter) scrape(ch chan<- prometheus.Metric) {
@@ -343,6 +442,16 @@ func (e *Exporter) scrape(ch chan<- prometheus.Metric) {
 	} else {
 		log.Info(err)
 	}
+
+	e.iota_zmq_seen_tx_count.Set(0)
+	e.iota_zmq_txs_with_value_count.Set(0)
+	e.iota_zmq_confirmed_tx_count.Set(0)
+	e.iota_zmq_to_process.Set(0)
+	e.iota_zmq_to_broadcast.Set(0)
+	e.iota_zmq_to_request.Set(0)
+	e.iota_zmq_to_reply.Set(0)
+	e.iota_zmq_total_transactions.Set(0)
+
 }
 
 func main() {
