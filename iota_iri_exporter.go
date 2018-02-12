@@ -328,8 +328,6 @@ func (e *Exporter) scrape(ch chan<- prometheus.Metric) {
 	"numberOfSentTransactions": 0
 	*/
 
-	log.Infof("Hello")
-
 	if err == nil {
 		neighbor_cnt := len(resp2.Neighbors)
 		e.iota_neighbors_info_total_neighbors.Set(float64(neighbor_cnt))
