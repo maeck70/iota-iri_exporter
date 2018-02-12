@@ -14,7 +14,7 @@ import (
 
 // Version is set during build to the git describe version
 // (semantic version)-(commitish) form.
-var Version = "0.0.1"
+var Version = "0.0.2"
 
 var (
 	listenAddress = kingpin.Flag("web.listen-address", "Address to listen on for web interface and telemetry.").Default(":9187").String()
@@ -331,6 +331,7 @@ func (e *Exporter) scrape(ch chan<- prometheus.Metric) {
 		e.iota_neighbors_info_total_neighbors.Set(float64(neighbor_cnt))
 		e.iota_neighbors_info_active_neighbors.Set(GetActiveNeighbors(resp2.Neighbors))
 		for n := 1; n < neighbor_cnt; n++ {
+			log.Infof("Neighbor %s_is %s", string(resp2.Neighbors[n].Address), actify(GetActiveNeighbor(string(resp2.Neighbors[n].Address))))
 			e.iota_neighbors_active.WithLabelValues(string(resp2.Neighbors[n].Address)).Set(float64(GetActiveNeighbor(string(resp2.Neighbors[n].Address))))
 			// TODO: update to enable the two missing metrics from the getNeighbors api ass soon as this call has been updated.
 			e.iota_neighbors_new_transactions.WithLabelValues(string(resp2.Neighbors[n].Address)).Set(float64(resp2.Neighbors[n].NumberOfNewTransactions))
@@ -368,6 +369,6 @@ func main() {
 		w.Write(landingPage) // nolint: errcheck
 	})
 
-	log.Infof("Starting %s_exporter Server on port %s", namespace, *listenAddress)
+	log.Infof("Starting %s_exporter Server on port %s monitoring %s", namespace, *listenAddress, *targetAddress)
 	log.Fatal(http.ListenAndServe(*listenAddress, nil))
 }

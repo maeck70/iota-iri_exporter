@@ -4,7 +4,6 @@ import (
 	"crypto/sha1"
 	"fmt"
 	"github.com/iotaledger/giota"
-	//"github.com/prometheus/common/log"
 )
 
 const NEIGHBOR_MAX = 32
@@ -70,20 +69,6 @@ func (nm *neighborMatrix) historyInc() {
 	if nm.ptr >= HISTORY_MAX {
 		nm.ptr = 0
 	}
-}
-
-func btoi(b bool) int {
-	if b {
-		return 1
-	}
-	return 0
-}
-
-func btof(b bool) float64 {
-	if b {
-		return 1
-	}
-	return 0
 }
 
 func GetActiveNeighbor(addr string) float64 {
