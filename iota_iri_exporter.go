@@ -1,9 +1,11 @@
-package iota_iri_exporter
+package main
 
 import (
 	"fmt"
 	"net/http"
 	"runtime"
+
+	//"github.com/maeck70/iota-iri_exporter/iota_iri_calculators"
 
 	"github.com/iotaledger/giota"
 	"github.com/prometheus/client_golang/prometheus"
@@ -47,6 +49,7 @@ type Exporter struct {
 	iota_neighbors_all_transactions           *prometheus.GaugeVec
 	iota_neighbors_invalid_transactions       *prometheus.GaugeVec
 	iota_neighbors_sent_transactions          *prometheus.GaugeVec
+	iota_neighbors_active                     *prometheus.GaugeVec
 }
 
 func NewExporter(iriAddress string) *Exporter {
@@ -224,6 +227,17 @@ func NewExporter(iriAddress string) *Exporter {
 			},
 			[]string{"id"},
 		),
+
+		iota_neighbors_active: prometheus.NewGaugeVec(
+			prometheus.GaugeOpts{
+				//Namespace: namespace,
+				//Subsystem: "exporter",
+				//Name: "neighbors_sent_transactions",
+				Name: "iota_neighbors_active",
+				Help: "Report if the Neighbor Active based on incoming transactions.",
+			},
+			[]string{"id"},
+		),
 	}
 }
 
@@ -249,6 +263,7 @@ func (e *Exporter) Describe(ch chan<- *prometheus.Desc) {
 	e.iota_neighbors_all_transactions.Describe(ch)
 	e.iota_neighbors_invalid_transactions.Describe(ch)
 	e.iota_neighbors_sent_transactions.Describe(ch)
+	e.iota_neighbors_active.Describe(ch)
 }
 
 func (e *Exporter) Collect(ch chan<- prometheus.Metric) {
@@ -273,6 +288,7 @@ func (e *Exporter) Collect(ch chan<- prometheus.Metric) {
 	e.iota_neighbors_all_transactions.Collect(ch)
 	e.iota_neighbors_invalid_transactions.Collect(ch)
 	e.iota_neighbors_sent_transactions.Collect(ch)
+	e.iota_neighbors_active.Collect(ch)
 }
 
 func (e *Exporter) scrape(ch chan<- prometheus.Metric) {
@@ -312,11 +328,14 @@ func (e *Exporter) scrape(ch chan<- prometheus.Metric) {
 	"numberOfSentTransactions": 0
 	*/
 
+	log.Infof("Hello")
+
 	if err == nil {
 		neighbor_cnt := len(resp2.Neighbors)
 		e.iota_neighbors_info_total_neighbors.Set(float64(neighbor_cnt))
-		e.iota_neighbors_info_active_neighbors.Set(getActiveNeighbors(resp2.Neighbors))
+		e.iota_neighbors_info_active_neighbors.Set(GetActiveNeighbors(resp2.Neighbors))
 		for n := 1; n < neighbor_cnt; n++ {
+			e.iota_neighbors_active.WithLabelValues(string(resp2.Neighbors[n].Address)).Set(float64(GetActiveNeighbor(string(resp2.Neighbors[n].Address))))
 			// TODO: update to enable the two missing metrics from the getNeighbors api ass soon as this call has been updated.
 			e.iota_neighbors_new_transactions.WithLabelValues(string(resp2.Neighbors[n].Address)).Set(float64(resp2.Neighbors[n].NumberOfNewTransactions))
 			//e.iota_neighbors_random_transactions.WithLabelValues(string(resp2.Neighbors[n].Address)).Set(float64(resp2.Neighbors[n].NumberOfRandomTransactionRequests))
