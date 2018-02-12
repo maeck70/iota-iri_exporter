@@ -5,8 +5,6 @@ import (
 	"net/http"
 	"runtime"
 
-	//"github.com/maeck70/iota-iri_exporter/iota_iri_calculators"
-
 	"github.com/iotaledger/giota"
 	"github.com/prometheus/client_golang/prometheus"
 	"github.com/prometheus/client_golang/prometheus/promhttp"
