@@ -11,13 +11,16 @@ I started this project to port the key IRI metrics to an exporter program writte
 
 As I am experimenting with building IRI nodes that use a minimum of resources, it became clear to me that I did not want the additional overhead of running a node.us program. In addition to that, the iota-node-exporter is also providing insight into external info like BTC, ETH and Iota market price which only adds unnecessary resources to the node.
 
-It is my goal of this project to provide the same functionality as iota-prom-exporter in a different package with the option to run multiple exporters to match the iota-prom-exporter exports.
+It is my goal of this project to provide the same functionality as iota-prom-exporter with the option to switch off non-IRI exporters to match the iota-prom-exporter exports as needed.
 
-1. [ ] iota-iri_exporter (work in progress): Export the main IRI metrics for consumption by Prometheus
-2. [ ] iota-tangle_exporter (planned): Export tangle metrics that pertain to the whole tangle, not this particular node 
-3. [ ] bitfinex_exporter (planned): Export market prices for popular crypto
+1. iota-iri_exporter (work in progress): Export the main IRI metrics for consumption by Prometheus
+	- [x] Pull getNodeInfo metrics.
+	- [x] Pull getNeighbor metrics (note. currently uses a custom giota branch until giota pull request is merged).
+	- [ ] Collect and Expose IRI ZMQ Metrics. 	
+	- [ ] Export tangle metrics that pertain to the whole tangle, not this particular node. 
+	- [ ] bitfinex_exporter (planned): Export market prices for popular crypto.
 
-With the proposed metrics exporting breakdown, federation of node monitoring should become more efficient and logical.  
+With the option to remove specific metrics groups, federation of node monitoring should become more logical and efficient.  
 
 # Use
 
