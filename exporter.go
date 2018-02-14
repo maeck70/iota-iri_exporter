@@ -56,10 +56,10 @@ type Exporter struct {
 	iota_zmq_to_broadcast                     prometheus.Gauge
 	iota_zmq_to_reply                         prometheus.Gauge
 	iota_zmq_total_transactions               prometheus.Gauge
-	iota_market_trade_price					  *prometheus.GaugeVec
-	iota_market_trade_volume 				  *prometheus.GaugeVec
-	iota_market_high_price  				  *prometheus.GaugeVec
-	iota_market_low_price 				 	  *prometheus.GaugeVec
+	iota_market_trade_price                   *prometheus.GaugeVec
+	iota_market_trade_volume                  *prometheus.GaugeVec
+	iota_market_high_price                    *prometheus.GaugeVec
+	iota_market_low_price                     *prometheus.GaugeVec
 }
 
 func NewExporter(iriAddress string) *Exporter {

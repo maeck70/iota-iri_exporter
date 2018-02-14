@@ -1,29 +1,29 @@
 package main
 
 import (
-	"net/http"
-	"io/ioutil"
-	"strings"
-	"strconv"
 	"github.com/prometheus/client_golang/prometheus"
 	"github.com/prometheus/common/log"
+	"io/ioutil"
+	"net/http"
+	"strconv"
+	"strings"
 )
 
 type tradingPair struct {
-	symbol 	 			string
-	bid 				float64 
-	bid_size 			float64 
-	ask  				float64
-	ask_size			float64
-	daily_change 		float64
-	daily_change_perc 	float64
-	last_price 			float64
-	volume				float64
-	high				float64
-	low					float64
+	symbol            string
+	bid               float64
+	bid_size          float64
+	ask               float64
+	ask_size          float64
+	daily_change      float64
+	daily_change_perc float64
+	last_price        float64
+	volume            float64
+	high              float64
+	low               float64
 }
 
-var tradingPairList = []string {
+var tradingPairList = []string{
 	"tIOTUSD",
 	"tIOTEUR",
 	"tIOTBTC",
@@ -96,14 +96,14 @@ func scrape_bitfinex(e *Exporter) {
 	// Get Bitfinex metrics
 
 	url := "https://api.bitfinex.com/v2/tickers?symbols="
-	for t := range(tradingPairList) {
+	for t := range tradingPairList {
 		url += tradingPairList[t]
 		if t < len(tradingPairList)-1 {
 			url += ","
 		}
 	}
 	req, err := http.NewRequest("GET", url, nil)
-	resp, _ := 	http.DefaultClient.Do(req)
+	resp, _ := http.DefaultClient.Do(req)
 
 	if err == nil {
 
@@ -120,8 +120,8 @@ func scrape_bitfinex(e *Exporter) {
 			s2 := strings.Split(s[n], ",")
 
 			tp := tradingPair{}
-			tp.symbol = strings.Trim(s2[0],"\"")
-			tp.symbol = strings.TrimLeft(tp.symbol,"t")		
+			tp.symbol = strings.Trim(s2[0], "\"")
+			tp.symbol = strings.TrimLeft(tp.symbol, "t")
 			tp.bid, _ = strconv.ParseFloat(s2[1], 64)
 			tp.bid_size, _ = strconv.ParseFloat(s2[2], 64)
 			tp.ask, _ = strconv.ParseFloat(s2[3], 64)
