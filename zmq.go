@@ -7,6 +7,8 @@ import (
 	//"github.com/iotaledger/giota"
 	"github.com/prometheus/client_golang/prometheus"
 	"github.com/prometheus/common/log"
+	"github.com/k0kubun/pp"
+	"github.com/pebbe/zmq4"
 )
 
 func metrics_zmq(e *Exporter) {

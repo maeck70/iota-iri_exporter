@@ -1,7 +1,6 @@
 package main
 
 import (
-	//"fmt"
 	"github.com/iotaledger/giota"
 	"github.com/prometheus/client_golang/prometheus"
 	"github.com/prometheus/common/log"
