@@ -95,6 +95,7 @@ func collect_bitfinex(e *Exporter, ch chan<- prometheus.Metric) {
 }
 
 func init(){
+	// Expand the Bitfinex URL with the list of trading pairs
 	for t := range tradingPairList {
 		bitfinex_url += tradingPairList[t]
 		if t < len(tradingPairList)-1 {

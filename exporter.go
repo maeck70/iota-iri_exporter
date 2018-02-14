@@ -133,6 +133,8 @@ func main() {
 	exporter := NewExporter(*targetAddress)
 	prometheus.MustRegister(exporter)
 
+	init_zmq()
+
 	http.Handle(*metricPath, promhttp.Handler())
 	http.HandleFunc("/", func(w http.ResponseWriter, r *http.Request) {
 		w.Write(landingPage) // nolint: errcheck

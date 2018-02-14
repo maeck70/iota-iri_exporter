@@ -2,8 +2,11 @@ package main
 
 import (
 	//"fmt"
+	"math/rand"
+	"time"
 	//"github.com/iotaledger/giota"
 	"github.com/prometheus/client_golang/prometheus"
+	"github.com/prometheus/common/log"
 )
 
 func metrics_zmq(e *Exporter) {
@@ -105,13 +108,39 @@ func collect_zmq(e *Exporter, ch chan<- prometheus.Metric) {
 
 func scrape_zmq(e *Exporter) {
 
-	e.iota_zmq_seen_tx_count.Set(1)
-	e.iota_zmq_txs_with_value_count.Set(1)
-	e.iota_zmq_confirmed_tx_count.Set(1)
-	e.iota_zmq_to_process.Set(1)
-	e.iota_zmq_to_broadcast.Set(1)
-	e.iota_zmq_to_request.Set(1)
-	e.iota_zmq_to_reply.Set(1)
-	e.iota_zmq_total_transactions.Set(1)
+	e.iota_zmq_seen_tx_count.Set(data[0])
+	e.iota_zmq_txs_with_value_count.Set(data[1])
+	e.iota_zmq_confirmed_tx_count.Set(data[2])
+	e.iota_zmq_to_process.Set(data[3])
+	e.iota_zmq_to_broadcast.Set(data[4])
+	e.iota_zmq_to_request.Set(data[0]+data[1])
+	e.iota_zmq_to_reply.Set(data[1]+data[2])
+	e.iota_zmq_total_transactions.Set(data[3]+data[4])
 
 }
+
+
+
+var data [5]float64
+var zmq_url = "localhost:5556"
+
+func zmq_collector() {
+	for {
+		i := rand.Intn(5)
+		data[i]++
+
+		r := rand.Intn(100000)
+		time.Sleep(time.Duration(r) * time.Microsecond)	
+	}
+}
+
+
+func init_zmq() {
+
+	go zmq_collector()
+	
+	log.Infof("ZMQ Initialized on listener %s.", zmq_url)
+
+}
+
+

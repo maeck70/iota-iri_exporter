@@ -17,8 +17,7 @@ It is my goal of this project to provide the same functionality as iota-prom-exp
 	- [x] Pull getNodeInfo metrics.
 	- [x] Pull getNeighbor metrics (note. currently uses a custom giota branch until giota pull request is merged).
 	- [ ] Collect and Expose IRI ZMQ Metrics. 	
-	- [ ] Export tangle metrics that pertain to the whole tangle, not this particular node. 
-	- [x] bitfinex_exporter: Export market prices for popular crypto.
+	- [x] Bitfinex: Export market prices for popular crypto.
 
 With the option to remove specific metrics groups, federation of node monitoring should become more logical and efficient.  
 
