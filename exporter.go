@@ -56,6 +56,10 @@ type Exporter struct {
 	iota_zmq_to_broadcast                     prometheus.Gauge
 	iota_zmq_to_reply                         prometheus.Gauge
 	iota_zmq_total_transactions               prometheus.Gauge
+	iota_market_trade_price					  *prometheus.GaugeVec
+	iota_market_trade_volume 				  *prometheus.GaugeVec
+	iota_market_high_price  				  *prometheus.GaugeVec
+	iota_market_low_price 				 	  *prometheus.GaugeVec
 }
 
 func NewExporter(iriAddress string) *Exporter {
@@ -75,6 +79,7 @@ func NewExporter(iriAddress string) *Exporter {
 	metrics_nodeinfo(e)
 	metrics_neighbors(e)
 	metrics_zmq(e)
+	metrics_bitfinex(e)
 
 	return e
 }
@@ -86,6 +91,7 @@ func (e *Exporter) Describe(ch chan<- *prometheus.Desc) {
 	describe_nodeinfo(e, ch)
 	describe_neighbors(e, ch)
 	describe_zmq(e, ch)
+	describe_bitfinex(e, ch)
 }
 
 func (e *Exporter) Collect(ch chan<- prometheus.Metric) {
@@ -95,6 +101,7 @@ func (e *Exporter) Collect(ch chan<- prometheus.Metric) {
 	collect_nodeinfo(e, ch)
 	collect_neighbors(e, ch)
 	collect_zmq(e, ch)
+	collect_bitfinex(e, ch)
 }
 
 func (e *Exporter) scrape(ch chan<- prometheus.Metric) {
@@ -104,6 +111,7 @@ func (e *Exporter) scrape(ch chan<- prometheus.Metric) {
 	scrape_nodeinfo(e, api)
 	scrape_neighbors(e, api)
 	scrape_zmq(e)
+	scrape_bitfinex(e)
 }
 
 func main() {
