@@ -374,8 +374,6 @@ func init_zmq() {
 
 	go manageTimeslice()
 	
-	log.Infof("ZMQ Initialized on listener %s.", address)
-
 }
 
 

@@ -15,8 +15,8 @@ It is my goal of this project to provide the same functionality as iota-prom-exp
 
 1. iota-iri_exporter (work in progress): Export the main IRI metrics for consumption by Prometheus
 	- [x] Pull getNodeInfo metrics.
-	- [x] Pull getNeighbor metrics (note. currently uses a custom giota branch until giota pull request is merged).
-	- [ ] Collect and Expose IRI ZMQ Metrics. 	
+	- [x] Pull getNeighbor metrics.
+	- [x] Collect and Expose IRI ZMQ Metrics. 	
 	- [x] Bitfinex: Export market prices for popular crypto.
 
 With the option to remove specific metrics groups, federation of node monitoring should become more logical and efficient.  
