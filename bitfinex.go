@@ -150,6 +150,7 @@ func scrape_bitfinex(e *Exporter) {
 			tp := tradingPair{}
 			tp.symbol = strings.Trim(s2[0], "\"")
 			tp.symbol = strings.TrimLeft(tp.symbol, "t")
+
 /*			tp.bid, _ = strconv.ParseFloat(s2[1], 64)
 			tp.bid_size, _ = strconv.ParseFloat(s2[2], 64)
 			tp.ask, _ = strconv.ParseFloat(s2[3], 64)

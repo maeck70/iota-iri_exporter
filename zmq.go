@@ -375,5 +375,3 @@ func init_zmq() {
 	go manageTimeslice()
 	
 }
-
-
