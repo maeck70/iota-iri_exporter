@@ -24,6 +24,8 @@ SOFTWARE.
 
 package main
 
+import "strconv"
+
 func btoi(b bool) int {
 	if b {
 		return 1
@@ -43,4 +45,20 @@ func actify(b float64) string {
 		return "Active"
 	}
 	return "Inactive"
+}
+
+func stoi(s string) int64 {
+	i, _ := strconv.ParseInt(s, 10, 64)
+	return i
+}
+
+func stof(s string) float64 {
+	f, _ := strconv.ParseFloat(s, 64)
+	return f
+}
+
+func must(err error) {
+	if err != nil {
+		panic(err)
+	}
 }
