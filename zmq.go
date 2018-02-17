@@ -102,7 +102,6 @@ var tx_total int64
 var timeslice_ptr int
 var timeslice_ptr_prev int
 var timeslice_set [TIMESLICE_LIMIT]timeslice
-var address = "tcp://localhost:5556"
 
 func metrics_zmq(e *Exporter) {
 
@@ -211,18 +210,29 @@ func scrape_zmq(e *Exporter) {
 	e.iota_zmq_to_request.Set(ts.tx_txntorequest)
 	e.iota_zmq_to_reply.Set(ts.tx_toreply)
 	e.iota_zmq_total_transactions.Set(float64(tx_total))
+
+	log.Debugf("total tx:          %v", tx_total)
+	log.Debugf("tx_any:            %v tps", ts.tx_any)
+	log.Debugf("tx_value:          %v tx", ts.tx_value)
+	log.Debugf("tx_confirmed:      %v tx", ts.tx_confirmed)
+	log.Debugf("tx_toprocess:      %v tx", int64(ts.tx_toprocess))
+	log.Debugf("tx_tobroadcast:	   %v tx", int64(ts.tx_tobroadcast))
+	log.Debugf("tx_toreply:        %v tx", int64(ts.tx_toreply))
+	log.Debugf("tx_numberstoredtx: %v tx", int64(ts.tx_numberstoredtx))				
+	log.Debugf("tx_txntorequest:   %v tx", int64(ts.tx_txntorequest))
+
 }
 
-func collectTimeslice() {
+func collectTimeslice(address *string) {
 
 	socket, err := zmq4.NewSocket(zmq4.SUB)
 	must(err)
 	socket.SetSubscribe("") // TODO: Listen to only tx, sn, rstat
 
-	err = socket.Connect(address)
+	err = socket.Connect(*address)
 	must(err)
 
-	log.Infof("Connected to IRI at address %s.", address)
+	log.Infof("Connected to IRI at address %s.", *address)
 
 	for {
 
@@ -306,12 +316,12 @@ func advanceTimeslice() {
 	timeslice_ptr = timeslice_ptr_new
 }
 
-func manageTimeslice() {
+func manageTimeslice(address *string) {
 	timeslice_ptr_prev = 0
 	timeslice_ptr = 0
 
 	// Start collector concurrently
-	go collectTimeslice()
+	go collectTimeslice(address)
 
 	// Rotate the timeslice array pointer every second
 	for {
@@ -370,8 +380,8 @@ func getTimesliceAvg() timeslicef {
 	return timeslice_avg
 }
 
-func init_zmq() {
+func init_zmq(address *string) {
 
-	go manageTimeslice()
+	go manageTimeslice(address)
 
 }

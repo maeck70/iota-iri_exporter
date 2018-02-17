@@ -38,12 +38,13 @@ import (
 
 // Version is set during build to the git describe version
 // (semantic version)-(commitish) form.
-var Version = "0.3.0"
+var Version = "0.3.1"
 
 var (
-	listenAddress = kingpin.Flag("web.listen-address", "Address to listen on for web interface and telemetry.").Default(":9187").String()
+	listenAddress = kingpin.Flag("web.listen-address", "Address to listen on for web interface and telemetry.").Default(":9311").String()
 	metricPath    = kingpin.Flag("web.telemetry-path", "Path under which to expose metrics.").Default("/metrics").String()
 	targetAddress = kingpin.Flag("web.iri-path", "URI of the IOTA IRI Node to scrape.").Default("http://localhost:14265").String()
+	targetZmqAddress = kingpin.Flag("web.zmq-path", "URI of the IOTA IRI ZMQ Node to scrape.").Default("tcp://localhost:5556").String()
 )
 
 const (
@@ -157,7 +158,7 @@ func main() {
 	exporter := NewExporter(*targetAddress)
 	prometheus.MustRegister(exporter)
 
-	init_zmq()
+	init_zmq(targetZmqAddress)
 
 	http.Handle(*metricPath, promhttp.Handler())
 	http.HandleFunc("/", func(w http.ResponseWriter, r *http.Request) {
