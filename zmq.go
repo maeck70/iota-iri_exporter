@@ -25,8 +25,8 @@ SOFTWARE.
 package main
 
 import (
-	"time"
 	"strings"
+	"time"
 	//"github.com/iotaledger/giota"
 	"github.com/pebbe/zmq4"
 	"github.com/prometheus/client_golang/prometheus"
@@ -37,25 +37,25 @@ import (
 const TIMESLICE_LIMIT = 300
 
 type timeslicef struct {
-	tx_any         float64
-	tx_value       float64
-	tx_confirmed   float64
-	tx_toprocess   float64
-	tx_tobroadcast float64
-	tx_toreply     float64
-	tx_numberstoredtx float64				
-	tx_txntorequest float64
+	tx_any            float64
+	tx_value          float64
+	tx_confirmed      float64
+	tx_toprocess      float64
+	tx_tobroadcast    float64
+	tx_toreply        float64
+	tx_numberstoredtx float64
+	tx_txntorequest   float64
 }
 
 type timeslice struct {
-	tx_any         int64
-	tx_value       int64
-	tx_confirmed   int64
-	tx_toprocess   int64
-	tx_tobroadcast int64
-	tx_toreply     int64
+	tx_any            int64
+	tx_value          int64
+	tx_confirmed      int64
+	tx_toprocess      int64
+	tx_tobroadcast    int64
+	tx_toreply        int64
 	tx_numberstoredtx int64
-	tx_txntorequest int64
+	tx_txntorequest   int64
 }
 
 func (ts *timeslice) reset() {
@@ -217,7 +217,7 @@ func collectTimeslice() {
 
 	socket, err := zmq4.NewSocket(zmq4.SUB)
 	must(err)
-	socket.SetSubscribe("")		// TODO: Listen to only tx, sn, rstat
+	socket.SetSubscribe("") // TODO: Listen to only tx, sn, rstat
 
 	err = socket.Connect(address)
 	must(err)
@@ -232,54 +232,54 @@ func collectTimeslice() {
 		parts := strings.Fields(msg)
 		switch parts[0] {
 
-			//Transaction
-			case "tx":
-				tx_total++
-				txn := Transaction{
-					Hash:         parts[1],
-					Address:      parts[2],
-					Value:        stoi(parts[3]),
-					Tag:          parts[4],
-					Timestamp:    parts[5],
-					CurrentIndex: parts[6],
-					LastIndex:    parts[7],
-					Bundle:       parts[8],
-					Trunk:        parts[9],
-					Branch:       parts[10],
-					ArrivalDate:  parts[11],
-				}
-				timeslice_set[timeslice_ptr].tx_any++
-				if txn.Value != 0 {
-					timeslice_set[timeslice_ptr].tx_value++	
-				}
+		//Transaction
+		case "tx":
+			tx_total++
+			txn := Transaction{
+				Hash:         parts[1],
+				Address:      parts[2],
+				Value:        stoi(parts[3]),
+				Tag:          parts[4],
+				Timestamp:    parts[5],
+				CurrentIndex: parts[6],
+				LastIndex:    parts[7],
+				Bundle:       parts[8],
+				Trunk:        parts[9],
+				Branch:       parts[10],
+				ArrivalDate:  parts[11],
+			}
+			timeslice_set[timeslice_ptr].tx_any++
+			if txn.Value != 0 {
+				timeslice_set[timeslice_ptr].tx_value++
+			}
 
-			// Transaction confirmed
-			case "sn":
-				timeslice_set[timeslice_ptr].tx_any++
-/*				stat := sn{
-					Index:       parts[1],
-					Hash:        parts[2],
-					AddressHash: parts[3],
-					Trunk:       parts[4],
-					Branch:      parts[5],
-					Bundle:      parts[6],
-				}
-*/				timeslice_set[timeslice_ptr].tx_confirmed++
+		// Transaction confirmed
+		case "sn":
+			timeslice_set[timeslice_ptr].tx_any++
+			/*				stat := sn{
+								Index:       parts[1],
+								Hash:        parts[2],
+								AddressHash: parts[3],
+								Trunk:       parts[4],
+								Branch:      parts[5],
+								Bundle:      parts[6],
+							}
+			*/timeslice_set[timeslice_ptr].tx_confirmed++
 
-			case "rstat":
-				stat := queue{
-					ReceiveQueueSize:   stoi(parts[1]),
-					BroadcastQueueSize: stoi(parts[2]),
-					TxnToRequest:       stoi(parts[3]),
-					ReplyQueueSize:     stoi(parts[4]),
-					NumberOfStoredTxns: stoi(parts[5]),
-				}
-				// Note that these are total counts, no need to increment into the timeslice
-				timeslice_set[timeslice_ptr].tx_toprocess = stat.ReceiveQueueSize
-				timeslice_set[timeslice_ptr].tx_tobroadcast = stat.BroadcastQueueSize
-				timeslice_set[timeslice_ptr].tx_toreply = stat.ReplyQueueSize
-				timeslice_set[timeslice_ptr].tx_numberstoredtx = stat.NumberOfStoredTxns				
-				timeslice_set[timeslice_ptr].tx_txntorequest = stat.TxnToRequest
+		case "rstat":
+			stat := queue{
+				ReceiveQueueSize:   stoi(parts[1]),
+				BroadcastQueueSize: stoi(parts[2]),
+				TxnToRequest:       stoi(parts[3]),
+				ReplyQueueSize:     stoi(parts[4]),
+				NumberOfStoredTxns: stoi(parts[5]),
+			}
+			// Note that these are total counts, no need to increment into the timeslice
+			timeslice_set[timeslice_ptr].tx_toprocess = stat.ReceiveQueueSize
+			timeslice_set[timeslice_ptr].tx_tobroadcast = stat.BroadcastQueueSize
+			timeslice_set[timeslice_ptr].tx_toreply = stat.ReplyQueueSize
+			timeslice_set[timeslice_ptr].tx_numberstoredtx = stat.NumberOfStoredTxns
+			timeslice_set[timeslice_ptr].tx_txntorequest = stat.TxnToRequest
 		}
 	}
 }
@@ -299,7 +299,7 @@ func advanceTimeslice() {
 	timeslice_set[timeslice_ptr_new].tx_toprocess = timeslice_set[timeslice_ptr].tx_toprocess
 	timeslice_set[timeslice_ptr_new].tx_tobroadcast = timeslice_set[timeslice_ptr].tx_tobroadcast
 	timeslice_set[timeslice_ptr_new].tx_toreply = timeslice_set[timeslice_ptr].tx_toreply
-	timeslice_set[timeslice_ptr_new].tx_numberstoredtx = timeslice_set[timeslice_ptr].tx_numberstoredtx				
+	timeslice_set[timeslice_ptr_new].tx_numberstoredtx = timeslice_set[timeslice_ptr].tx_numberstoredtx
 	timeslice_set[timeslice_ptr_new].tx_txntorequest = timeslice_set[timeslice_ptr].tx_txntorequest
 
 	// Activate the new slice
@@ -347,7 +347,7 @@ func getTimesliceAvg() timeslicef {
 		timeslice_avg.tx_toprocess = float64(timeslice_set[ts].tx_toprocess)
 		timeslice_avg.tx_tobroadcast = float64(timeslice_set[ts].tx_tobroadcast)
 		timeslice_avg.tx_toreply = float64(timeslice_set[ts].tx_toreply)
-		timeslice_avg.tx_numberstoredtx = float64(timeslice_set[ts].tx_numberstoredtx)				
+		timeslice_avg.tx_numberstoredtx = float64(timeslice_set[ts].tx_numberstoredtx)
 		timeslice_avg.tx_txntorequest = float64(timeslice_set[ts].tx_txntorequest)
 		timeslice_cnt++
 	}
@@ -360,7 +360,7 @@ func getTimesliceAvg() timeslicef {
 		//timeslice_avg.tx_toprocess = timeslice_avg.tx_toprocess / timeslice_cnt
 		//timeslice_avg.tx_tobroadcast = timeslice_avg.tx_tobroadcast / timeslice_cnt
 		//timeslice_avg.tx_toreply = timeslice_avg.tx_toreply / timeslice_cnt
-		//timeslice_avg.tx_numberstoredtx = timeslice_avg.tx_numberstoredtx / timeslice_cnt				
+		//timeslice_avg.tx_numberstoredtx = timeslice_avg.tx_numberstoredtx / timeslice_cnt
 		//timeslice_avg.tx_txntorequest = timeslice_avg.tx_txntorequest / timeslice_cnt
 	}
 
@@ -373,7 +373,5 @@ func getTimesliceAvg() timeslicef {
 func init_zmq() {
 
 	go manageTimeslice()
-	
+
 }
-
-
