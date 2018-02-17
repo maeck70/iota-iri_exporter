@@ -102,7 +102,7 @@ var tx_total int64
 var timeslice_ptr int
 var timeslice_ptr_prev int
 var timeslice_set [TIMESLICE_LIMIT]timeslice
-var address = "tcp://node21.heliumsushi.com:5556"
+var address = "tcp://localhost:5556"
 
 func metrics_zmq(e *Exporter) {
 
