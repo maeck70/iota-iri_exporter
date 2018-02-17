@@ -56,7 +56,7 @@ var tradingPairList = []string{
 	"tBTCEUR",
 	"tETHUSD"}
 
-var bitfinex_url = "https://api.bitfinex.com/v2/tickers?symbols=" 
+var bitfinex_url = "https://api.bitfinex.com/v2/tickers?symbols="
 
 func metrics_bitfinex(e *Exporter) {
 	e.iota_market_trade_price = prometheus.NewGaugeVec(
@@ -118,7 +118,7 @@ func collect_bitfinex(e *Exporter, ch chan<- prometheus.Metric) {
 	e.iota_market_low_price.Collect(ch)
 }
 
-func init(){
+func init() {
 	// Expand the Bitfinex URL with the list of trading pairs
 	for t := range tradingPairList {
 		bitfinex_url += tradingPairList[t]
@@ -151,13 +151,13 @@ func scrape_bitfinex(e *Exporter) {
 			tp.symbol = strings.Trim(s2[0], "\"")
 			tp.symbol = strings.TrimLeft(tp.symbol, "t")
 
-/*			tp.bid, _ = strconv.ParseFloat(s2[1], 64)
+/*		tp.bid, _ = strconv.ParseFloat(s2[1], 64)
 			tp.bid_size, _ = strconv.ParseFloat(s2[2], 64)
 			tp.ask, _ = strconv.ParseFloat(s2[3], 64)
 			tp.ask_size, _ = strconv.ParseFloat(s2[4], 64)
 			tp.daily_change, _ = strconv.ParseFloat(s2[5], 64)
 			tp.daily_change_perc, _ = strconv.ParseFloat(s2[6], 64)
-*/			tp.last_price, _ = strconv.ParseFloat(s2[7], 64)
+*/		tp.last_price, _ = strconv.ParseFloat(s2[7], 64)
 			tp.volume, _ = strconv.ParseFloat(s2[8], 64)
 			tp.high, _ = strconv.ParseFloat(s2[9], 64)
 			tp.low, _ = strconv.ParseFloat(s2[10], 64)
