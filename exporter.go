@@ -28,7 +28,6 @@ import (
 	"fmt"
 	"net/http"
 	"runtime"
-
 	"github.com/iotaledger/giota"
 	"github.com/prometheus/client_golang/prometheus"
 	"github.com/prometheus/client_golang/prometheus/promhttp"
