@@ -1,7 +1,8 @@
 # Installation Instructions
 
 Note that these have not been verified yet. 
-Some of the steps may be incorrect or incomplete
+Some of the steps may be incorrect or incomplete.
+This is an early release.
 
 
 Prerequisites for building:
@@ -19,9 +20,9 @@ Get the iota-iri_exporter sources:
 
 Steps:
 1. `go install github.com/maeck70/iota-iri_exporter`
-2. >> binary should be built into go/bin
+2. Binary should be built into `go/bin`
 3. Make sure iota-prom-exporter is not running `systemctl stop iota-prom-exporter`
 4. Check the starter file for correct addresses and ports and start manually with `./run-exporter`
 5. Since this exposes the iota-iri prometheus info on the same port as the iota-prom-exporter, the newmetrics should be visible in Grafana
-6. Daemonize this program. There are more steps to do so which I wont go into. The script `copy-to-prometheus.sh` can be used to copt the binary to the /opt/prometheus folder and start the daemon.
+6. Daemonize this program. There are more steps to do so, however, I won't go into that here. The script `copy-to-prometheus.sh` can be used to copy the binary to the /opt/prometheus folder and start the daemon.
  
