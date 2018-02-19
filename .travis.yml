@@ -8,8 +8,9 @@ stages:
     if: tag IS present
 
 before_install:
-  - sudo apt-get -qq update
-  - sudo apt-get install -y libzmq-dev
+  - git clone https://github.com/zeromq/libzmq
+  - ./autogen.sh && ./configure && make -j 4
+  - make check && make install && sudo ldconfig
 
 jobs:
   include:
