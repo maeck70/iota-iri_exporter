@@ -7,6 +7,10 @@ stages:
   - name: deploy
     if: tag IS present
 
+before_install:
+  - sudo apt-get -qq update
+  - sudo apt-get install -y libzmq-dev
+
 jobs:
   include:
     - stage: test
