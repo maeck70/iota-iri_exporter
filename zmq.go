@@ -25,12 +25,11 @@ SOFTWARE.
 package main
 
 import (
-	"strings"
-	"time"
-	//"github.com/iotaledger/giota"
 	"github.com/pebbe/zmq4"
 	"github.com/prometheus/client_golang/prometheus"
 	"github.com/prometheus/common/log"
+	"strings"
+	"time"
 )
 
 // Size of the timeslice buffer, each array row represents one second
@@ -218,7 +217,7 @@ func scrape_zmq(e *Exporter) {
 	log.Debugf("tx_toprocess:      %v tx", int64(ts.tx_toprocess))
 	log.Debugf("tx_tobroadcast:    %v tx", int64(ts.tx_tobroadcast))
 	log.Debugf("tx_toreply:        %v tx", int64(ts.tx_toreply))
-	log.Debugf("tx_numberstoredtx: %v tx", int64(ts.tx_numberstoredtx))				
+	log.Debugf("tx_numberstoredtx: %v tx", int64(ts.tx_numberstoredtx))
 	log.Debugf("tx_txntorequest:   %v tx", int64(ts.tx_txntorequest))
 
 }

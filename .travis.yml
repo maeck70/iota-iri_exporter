@@ -8,10 +8,11 @@ stages:
     if: tag IS present
 
 before_install:
-  - git clone https://github.com/zeromq/libzmq
-  - cd libzmq
-  - ./autogen.sh && ./configure && make -j 4
-  - make check && make install && sudo ldconfig
+  - wget https://github.com/zeromq/libzmq/releases/download/v4.2.3/zeromq-4.2.3.tar.gz
+  - tar -xf zeromq-4.2.3.tar.gz
+  - cd zeromq-4.2.3
+  - ./configure; make; sudo make install
+  - sudo ldconfig
 
 jobs:
   include:
