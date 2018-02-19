@@ -18,26 +18,26 @@ jobs:
   include:
     - stage: test
       script: 
-        - go test -v -race ./... 
+        #- go test -v -race ./... 
     - stage: deploy 
       script: 
-        - go get -u -v github.com/inconshreveable/mousetrap # needed for windows
+        #- go get -u -v github.com/inconshreveable/mousetrap # needed for windows
         - GOOS=linux GOARCH=amd64 go build -ldflags="-s -w" -v -o tt-$TRAVIS_TAG-linux64
         - GOOS=linux GOARCH=arm64 go build -ldflags="-s -w" -v -o tt-$TRAVIS_TAG-linux-arm64
-        - GOOS=darwin GOARCH=amd64 go build -ldflags="-s -w" -v -o tt-$TRAVIS_TAG-darwin64
-        - GOOS=windows GOARCH=amd64 go build -ldflags="-s -w" -v -o tt-$TRAVIS_TAG-win64.exe
+        #- GOOS=darwin GOARCH=amd64 go build -ldflags="-s -w" -v -o tt-$TRAVIS_TAG-darwin64
+        #- GOOS=windows GOARCH=amd64 go build -ldflags="-s -w" -v -o tt-$TRAVIS_TAG-win64.exe
         - md5sum tt-$TRAVIS_TAG-linux64
         - md5sum tt-$TRAVIS_TAG-linux-arm64
-        - md5sum tt-$TRAVIS_TAG-darwin64
-        - md5sum tt-$TRAVIS_TAG-win64.exe
+        #- md5sum tt-$TRAVIS_TAG-darwin64
+        #- md5sum tt-$TRAVIS_TAG-win64.exe
       deploy:
         provider: releases
         api_key: $GITHUB_OAUTH_TOKEN
         file:
           - tt-$TRAVIS_TAG-linux64
           - tt-$TRAVIS_TAG-linux-arm64
-          - tt-$TRAVIS_TAG-darwin64
-          - tt-$TRAVIS_TAG-win64.exe
+          #- tt-$TRAVIS_TAG-darwin64
+          #- tt-$TRAVIS_TAG-win64.exe
         skip_cleanup: true
         on:
           tags: true
