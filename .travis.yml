@@ -12,14 +12,16 @@ before_install:
   #- wget https://download.opensuse.org/repositories/network:/messaging:/zeromq:/release-stable/xUbuntu_16.04/amd64/libzmq3-dev_4.2.3_amd64.deb
   #- sudo dpkg -i libzmq5_4.2.3_amd64.deb
   #- sudo dpkg -i libzmq3-dev_4.2.3_amd64.deb
-  - sudo apt install libzmq4
-  - sudo apt install libzmq3-dev
+  #- sudo apt install libzmq5 libzmq3-dev libzmq5-dbg
 
   # - wget https://github.com/zeromq/libzmq/releases/download/v4.2.3/zeromq-4.2.3.tar.gz
   # - tar -xf zeromq-4.2.3.tar.gz
   # - cd zeromq-4.2.3
   # - ./configure; make; sudo make install
   # - sudo ldconfig
+
+  - sudo apt-get -qq update
+  - sudo apt-get install -y libzmq5 libzmq3-dev
 
 jobs:
   include:
