@@ -8,26 +8,30 @@ stages:
     if: tag IS present
 
 before_install:
-  - wget https://github.com/zeromq/libzmq/releases/download/v4.2.3/zeromq-4.2.3.tar.gz
-  - tar -xf zeromq-4.2.3.tar.gz
-  - cd zeromq-4.2.3
-  - ./configure; make; sudo make install
-  - sudo ldconfig
+  - wget https://download.opensuse.org/repositories/network:/messaging:/zeromq:/release-stable/xUbuntu_16.04/amd64/libzmq3-dev_4.2.3_amd64.deb
+  - sudo dpkg -i libzmq3-dev_4.2.3_amd64.deb
+
+  # - wget https://github.com/zeromq/libzmq/releases/download/v4.2.3/zeromq-4.2.3.tar.gz
+  # - tar -xf zeromq-4.2.3.tar.gz
+  # - cd zeromq-4.2.3
+  # - ./configure; make; sudo make install
+  # - sudo ldconfig
 
 jobs:
   include:
     - stage: test
       script: 
         #- go test -v -race ./... 
+        - go test -v ./...
     - stage: deploy 
       script: 
         #- go get -u -v github.com/inconshreveable/mousetrap # needed for windows
         - GOOS=linux GOARCH=amd64 go build -ldflags="-s -w" -v -o tt-$TRAVIS_TAG-linux64
-        - GOOS=linux GOARCH=arm64 go build -ldflags="-s -w" -v -o tt-$TRAVIS_TAG-linux-arm64
+        #- GOOS=linux GOARCH=arm64 go build -ldflags="-s -w" -v -o tt-$TRAVIS_TAG-linux-arm64
         #- GOOS=darwin GOARCH=amd64 go build -ldflags="-s -w" -v -o tt-$TRAVIS_TAG-darwin64
         #- GOOS=windows GOARCH=amd64 go build -ldflags="-s -w" -v -o tt-$TRAVIS_TAG-win64.exe
         - md5sum tt-$TRAVIS_TAG-linux64
-        - md5sum tt-$TRAVIS_TAG-linux-arm64
+        #- md5sum tt-$TRAVIS_TAG-linux-arm64
         #- md5sum tt-$TRAVIS_TAG-darwin64
         #- md5sum tt-$TRAVIS_TAG-win64.exe
       deploy:
@@ -35,7 +39,7 @@ jobs:
         api_key: $GITHUB_OAUTH_TOKEN
         file:
           - tt-$TRAVIS_TAG-linux64
-          - tt-$TRAVIS_TAG-linux-arm64
+          #- tt-$TRAVIS_TAG-linux-arm64
           #- tt-$TRAVIS_TAG-darwin64
           #- tt-$TRAVIS_TAG-win64.exe
         skip_cleanup: true
