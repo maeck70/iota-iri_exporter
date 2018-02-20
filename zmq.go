@@ -25,7 +25,7 @@ SOFTWARE.
 package main
 
 import (
-	"github.com/maeck70/zmq4"
+	"github.com/pebbe/zmq4"
 	"github.com/prometheus/client_golang/prometheus"
 	"github.com/prometheus/common/log"
 	"strings"
