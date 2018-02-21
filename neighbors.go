@@ -46,7 +46,8 @@ func metrics_neighbors(e *Exporter) {
 			//Namespace: namespace,
 			//Subsystem: "exporter",
 			//Name: "total_neighbors_ws",
-			Name: "iota_neighbors_info_active_neighbors",
+			//Name: "iota_neighbors_info_active_neighbors", // This is the naming in the Grafana dashboard
+			Name: "iota_neighbors_active_neighbors",
 			Help: "Total number of neighbors that are active.",
 		})
 
