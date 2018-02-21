@@ -56,7 +56,7 @@ func TestActiveNeighbors(t *testing.T) {
 		{tx_count: 116, result: 1},
 		{tx_count: 116, result: 1},
 		{tx_count: 116, result: 1},
-		{tx_count: 116, result: 0},
+		{tx_count: 116, result: 1},
 	}
 
 	addr := "foo.com"
@@ -73,8 +73,6 @@ func TestActiveNeighbors(t *testing.T) {
 				Address: giota.Address(addr), 
 				NumberOfNewTransactions: tx[i].tx_count,
 		}
-
-		fmt.Print(GetActiveNeighbors(nl))
 
 		if i == 4 {
 			a = GetActiveNeighbors(nl)
