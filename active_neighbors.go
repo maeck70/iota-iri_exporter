@@ -107,6 +107,5 @@ func GetActiveNeighbors(neighborlist []giota.Neighbor) float64 {
 		neighbormatrix.register(neighborlist[n])
 		active_count += btoi(neighbormatrix.isActive(string(neighborlist[n].Address)))
 	}
-
 	return float64(active_count)
 }
