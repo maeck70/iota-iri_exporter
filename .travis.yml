@@ -28,11 +28,11 @@ jobs:
     - stage: deploy 
       script: 
         #- go get -u -v github.com/inconshreveable/mousetrap # needed for windows
-        - GOOS=linux GOARCH=amd64 go build -ldflags="-s -w" -v -o tt-$TRAVIS_TAG-linux64
+        - GOOS=linux GOARCH=amd64 go build -ldflags="-s -w" -v -o releases/amd64/$TRAVIS_TAG
         #- GOOS=linux GOARCH=arm64 go build -ldflags="-s -w" -v -o tt-$TRAVIS_TAG-linux-arm64
         #- GOOS=darwin GOARCH=amd64 go build -ldflags="-s -w" -v -o tt-$TRAVIS_TAG-darwin64
         #- GOOS=windows GOARCH=amd64 go build -ldflags="-s -w" -v -o tt-$TRAVIS_TAG-win64.exe
-        - md5sum tt-$TRAVIS_TAG-linux64
+        - md5sum releases/amd64/$TRAVIS_TAG
         #- md5sum tt-$TRAVIS_TAG-linux-arm64
         #- md5sum tt-$TRAVIS_TAG-darwin64
         #- md5sum tt-$TRAVIS_TAG-win64.exe
@@ -40,7 +40,7 @@ jobs:
         provider: releases
         api_key: $GITHUB_OAUTH_TOKEN
         file:
-          - tt-$TRAVIS_TAG-linux64
+          - releases/amd64/$TRAVIS_TAG
           #- tt-$TRAVIS_TAG-linux-arm64
           #- tt-$TRAVIS_TAG-darwin64
           #- tt-$TRAVIS_TAG-win64.exe
