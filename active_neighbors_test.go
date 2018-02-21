@@ -56,7 +56,7 @@ func TestActiveNeighbors(t *testing.T) {
 		{tx_count: 116, result: 1},
 		{tx_count: 116, result: 1},
 		{tx_count: 116, result: 1},
-		{tx_count: 116, result: 1},
+		{tx_count: 116, result: 0},
 	}
 
 	addr := "foo.com"

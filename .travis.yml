@@ -32,7 +32,7 @@ jobs:
         api_key: $GITHUB_OAUTH_TOKEN
         file:
           - tt-$TRAVIS_TAG-linux64
-          #- tt-$TRAVIS_TAG-linux-arm64
+          - tt-$TRAVIS_TAG-linux-arm64
           #- tt-$TRAVIS_TAG-darwin64
           #- tt-$TRAVIS_TAG-win64.exe
         skip_cleanup: true
