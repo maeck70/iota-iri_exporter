@@ -28,6 +28,7 @@ import (
 	"crypto/sha1"
 	"fmt"
 	"github.com/iotaledger/giota"
+	"github.com/prometheus/common/log"
 )
 
 const NEIGHBOR_MAX = 32
@@ -96,16 +97,20 @@ func (nm *neighborMatrix) historyInc() {
 }
 
 func GetActiveNeighbor(addr string) float64 {
-	return btof(neighbormatrix.isActive(addr))
+	status := neighbormatrix.isActive(addr)
+	log.Debugf("Neighbor with address %s active status is %v", addr, status)
+	return btof(status)
 }
 
 func GetActiveNeighbors(neighborlist []giota.Neighbor) float64 {
 
 	neighbormatrix.historyInc()
+
 	active_count := 0
 	for n := range neighborlist {
 		neighbormatrix.register(neighborlist[n])
 		active_count += btoi(neighbormatrix.isActive(string(neighborlist[n].Address)))
 	}
+	log.Debugf("There are %v of %v active Neighbors.", active_count, len(neighborlist))
 	return float64(active_count)
 }
