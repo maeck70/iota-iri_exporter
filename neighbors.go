@@ -146,7 +146,7 @@ func scrape_neighbors(e *Exporter, api *giota.API) {
 	if err == nil {
 		neighbor_cnt := len(resp2.Neighbors)
 		e.iota_neighbors_info_total_neighbors.Set(float64(neighbor_cnt))
-		//e.iota_neighbors_info_active_neighbors.Set(GetActiveNeighbors(resp2.Neighbors))
+		e.iota_neighbors_info_active_neighbors.Set(GetActiveNeighbors(resp2.Neighbors))
 		for n := 1; n < neighbor_cnt; n++ {
 			address := string(resp2.Neighbors[n].Address)
 			e.iota_neighbors_active.WithLabelValues(address).Set(
