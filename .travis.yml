@@ -13,9 +13,9 @@ before_install:
 
 jobs:
   include:
-    # - stage: test
-    #   script: 
-    #     - go test -v ./...
+    - stage: test
+      script: 
+        - go test -v ./...
     - stage: deploy 
       script: 
         #- go get -u -v github.com/inconshreveable/mousetrap # needed for windows
