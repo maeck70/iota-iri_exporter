@@ -381,7 +381,8 @@ func getTimesliceAvg() timeslicef {
 }
 
 func initZmq(address *string) {
+	major, minor, patch := zmq4.Version()
+	log.Infof("ZMQ version is %d.%d.%d", major, minor, patch)
 
 	go manageTimeslice(address)
-
 }
