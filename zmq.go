@@ -260,9 +260,9 @@ func collectTimeslice(address *string) {
 			timesliceSet[timeslicePtr].txAny++
 			if txn.Value != 0 {
 				timesliceSet[timeslicePtr].txValue++
-				log.Debugf("ZMQ Tx with value msg received.")
+				log.Debug("ZMQ Tx with value msg received.")
 			} else {
-				log.Debugf("ZMQ Tx with zero value msg received.")
+				log.Debug("ZMQ Tx with zero value msg received.")
 			}
 
 		// Confirmed Transaction
@@ -277,7 +277,7 @@ func collectTimeslice(address *string) {
 								Bundle:      parts[6],
 							}
 			*/timesliceSet[timeslicePtr].txConfirmed++
-			log.Debugf("ZMQ Confirmed Tx msg received.")
+			log.Debug("ZMQ Confirmed Tx msg received.")
 
 		case "rstat":
 			stat := queue{
@@ -295,7 +295,7 @@ func collectTimeslice(address *string) {
 			timesliceSet[timeslicePtr].txNumberStoredTx = stat.NumberOfStoredTxns
 			timesliceSet[timeslicePtr].txTxnToRequest = stat.TxnToRequest
 
-			log.Debugf("ZMQ RStat msg received.")
+			log.Debug("ZMQ RStat msg received.")
 		}
 	}
 }
