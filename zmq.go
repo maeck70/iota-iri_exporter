@@ -241,7 +241,7 @@ func collectTimeslice(address *string) {
 		parts := strings.Fields(msg)
 		switch parts[0] {
 
-		//transaction
+		// Transaction
 		case "tx":
 			txTotal++
 			txn := transaction{
@@ -260,9 +260,12 @@ func collectTimeslice(address *string) {
 			timesliceSet[timeslicePtr].txAny++
 			if txn.Value != 0 {
 				timesliceSet[timeslicePtr].txValue++
+				log.Debugf("ZMQ Tx with value msg received.")
+			} else {
+				log.Debugf("ZMQ Tx with zero value msg received.")
 			}
 
-		// transaction confirmed
+		// Confirmed Transaction
 		case "sn":
 			timesliceSet[timeslicePtr].txAny++
 			/*				stat := sn{
@@ -274,6 +277,7 @@ func collectTimeslice(address *string) {
 								Bundle:      parts[6],
 							}
 			*/timesliceSet[timeslicePtr].txConfirmed++
+			log.Debugf("ZMQ Confirmed Tx msg received.")
 
 		case "rstat":
 			stat := queue{
@@ -283,12 +287,15 @@ func collectTimeslice(address *string) {
 				ReplyQueueSize:     stoi(parts[4]),
 				NumberOfStoredTxns: stoi(parts[5]),
 			}
+
 			// Note that these are total counts, no need to increment into the timeslice
 			timesliceSet[timeslicePtr].txToProcess = stat.ReceiveQueueSize
 			timesliceSet[timeslicePtr].txToBroadcast = stat.BroadcastQueueSize
 			timesliceSet[timeslicePtr].txToReply = stat.ReplyQueueSize
 			timesliceSet[timeslicePtr].txNumberStoredTx = stat.NumberOfStoredTxns
 			timesliceSet[timeslicePtr].txTxnToRequest = stat.TxnToRequest
+
+			log.Debugf("ZMQ RStat msg received.")
 		}
 	}
 }
@@ -363,14 +370,8 @@ func getTimesliceAvg() timeslicef {
 
 	// Calculate the average of the timeslice
 	if timesliceCnt > 1 {
-		//timesliceAvg.txAny = timesliceAvg.txAny / timesliceCnt
 		timesliceAvg.txValue = timesliceAvg.txValue / timesliceCnt
 		timesliceAvg.txConfirmed = timesliceAvg.txConfirmed / timesliceCnt
-		//timesliceAvg.txToProcess = timesliceAvg.txToProcess / timesliceCnt
-		//timesliceAvg.txToBroadcast = timesliceAvg.txToBroadcast / timesliceCnt
-		//timesliceAvg.txToReply = timesliceAvg.txToReply / timesliceCnt
-		//timesliceAvg.txNumberStoredTx = timesliceAvg.txNumberStoredTx / timesliceCnt
-		//timesliceAvg.txTxnToRequest = timesliceAvg.txTxnToRequest / timesliceCnt
 	}
 
 	// Maintain where we left off for the next call to this function
