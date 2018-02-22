@@ -44,6 +44,7 @@ func TestActiveNeighbor(t *testing.T) {
 		{transactionCount: 116, result: 1},
 		{transactionCount: 116, result: 1},
 		{transactionCount: 116, result: 0},
+		{transactionCount: 120, result: 1},
 	}
 
 	addr := "foo.com"
@@ -60,7 +61,7 @@ func TestActiveNeighbor(t *testing.T) {
 
 		a = getActiveNeighbor(addr)
 		if getActiveNeighbor(addr) != tx[i].result {
-			t.Errorf("Expected Neighbor Active (1), got %v", a)
+			t.Errorf("Test %v: Expected Neighbor to be %v, got %v", i, tx[i].result, a)
 		}
 	}
 
@@ -78,6 +79,7 @@ func TestActiveNeighbors(t *testing.T) {
 		{transactionCount: 116, result: 1},
 		{transactionCount: 116, result: 1},
 		{transactionCount: 116, result: 0},
+		{transactionCount: 120, result: 1},
 	}
 
 	addr := "foo.com"
