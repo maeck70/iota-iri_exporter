@@ -275,10 +275,11 @@ func collectTimeslice(address *string) {
 								Trunk:       parts[4],
 								Branch:      parts[5],
 								Bundle:      parts[6],
-							}
-			*/timesliceSet[timeslicePtr].txConfirmed++
+							}*/
+			timesliceSet[timeslicePtr].txConfirmed++
 			log.Debug("ZMQ Confirmed Tx msg received.")
 
+		// RStat message (overall statistics)
 		case "rstat":
 			stat := queue{
 				ReceiveQueueSize:   stoi(parts[1]),
