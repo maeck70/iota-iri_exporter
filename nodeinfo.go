@@ -30,9 +30,9 @@ import (
 	"github.com/prometheus/common/log"
 )
 
-func metrics_nodeinfo(e *Exporter) {
+func metricsNodeinfo(e *exporter) {
 
-	e.iota_node_info_duration = prometheus.NewGauge(
+	e.iotaNodeInfoDuration = prometheus.NewGauge(
 		prometheus.GaugeOpts{
 			//Namespace: namespace,
 			//Subsystem: "exporter",
@@ -41,7 +41,7 @@ func metrics_nodeinfo(e *Exporter) {
 			Help: "Response time of getting Node Info.",
 		})
 
-	e.iota_node_info_available_processors = prometheus.NewGauge(
+	e.iotaNodeInfoAvailableProcessors = prometheus.NewGauge(
 		prometheus.GaugeOpts{
 			//Namespace: namespace,
 			//Subsystem: "exporter",
@@ -50,7 +50,7 @@ func metrics_nodeinfo(e *Exporter) {
 			Help: "Number of cores available in this Node.",
 		})
 
-	e.iota_node_info_free_memory = prometheus.NewGauge(
+	e.iotaNodeInfoFreeMemory = prometheus.NewGauge(
 		prometheus.GaugeOpts{
 			//Namespace: namespace,
 			//Subsystem: "exporter",
@@ -59,7 +59,7 @@ func metrics_nodeinfo(e *Exporter) {
 			Help: "Free Memory in this IRI instance.",
 		})
 
-	e.iota_node_info_max_memory = prometheus.NewGauge(
+	e.iotaNodeInfoMaxMemory = prometheus.NewGauge(
 		prometheus.GaugeOpts{
 			//Namespace: namespace,
 			//Subsystem: "exporter",
@@ -68,7 +68,7 @@ func metrics_nodeinfo(e *Exporter) {
 			Help: "Max Memory in this IRI instance.",
 		})
 
-	e.iota_node_info_total_memory = prometheus.NewGauge(
+	e.iotaNodeInfoTotalMemory = prometheus.NewGauge(
 		prometheus.GaugeOpts{
 			//Namespace: namespace,
 			//Subsystem: "exporter",
@@ -77,7 +77,7 @@ func metrics_nodeinfo(e *Exporter) {
 			Help: "Total Memory in this IRI instance.",
 		})
 
-	e.iota_node_info_latest_milestone = prometheus.NewGauge(
+	e.iotaNodeInfoLatestMilestone = prometheus.NewGauge(
 		prometheus.GaugeOpts{
 			//Namespace: namespace,
 			//Subsystem: "exporter",
@@ -86,7 +86,7 @@ func metrics_nodeinfo(e *Exporter) {
 			Help: "Tangle milestone at the interval.",
 		})
 
-	e.iota_node_info_latest_subtangle_milestone = prometheus.NewGauge(
+	e.iotaNodeInfoLatestSubtangleMilestone = prometheus.NewGauge(
 		prometheus.GaugeOpts{
 			//Namespace: namespace,
 			//Subsystem: "exporter",
@@ -95,7 +95,7 @@ func metrics_nodeinfo(e *Exporter) {
 			Help: "Subtangle milestone at the interval.",
 		})
 
-	e.iota_node_info_total_neighbors = prometheus.NewGauge(
+	e.iotaNodeInfoTotalNeighbors = prometheus.NewGauge(
 		prometheus.GaugeOpts{
 			//Namespace: namespace,
 			//Subsystem: "exporter",
@@ -104,7 +104,7 @@ func metrics_nodeinfo(e *Exporter) {
 			Help: "Total neighbors at the interval.",
 		})
 
-	e.iota_node_info_total_tips = prometheus.NewGauge(
+	e.iotaNodeInfoTotalTips = prometheus.NewGauge(
 		prometheus.GaugeOpts{
 			//Namespace: namespace,
 			//Subsystem: "exporter",
@@ -113,7 +113,7 @@ func metrics_nodeinfo(e *Exporter) {
 			Help: "Total tips at the interval.",
 		})
 
-	e.iota_node_info_total_transactions_queued = prometheus.NewGauge(
+	e.iotaNodeInfoTotalTransactionsQueued = prometheus.NewGauge(
 		prometheus.GaugeOpts{
 			//Namespace: namespace,
 			//Subsystem: "exporter",
@@ -123,49 +123,49 @@ func metrics_nodeinfo(e *Exporter) {
 		})
 }
 
-func describe_nodeinfo(e *Exporter, ch chan<- *prometheus.Desc) {
-	ch <- e.iota_node_info_duration.Desc()
-	ch <- e.iota_node_info_available_processors.Desc()
-	ch <- e.iota_node_info_free_memory.Desc()
-	ch <- e.iota_node_info_max_memory.Desc()
-	ch <- e.iota_node_info_total_memory.Desc()
-	ch <- e.iota_node_info_latest_milestone.Desc()
-	ch <- e.iota_node_info_latest_subtangle_milestone.Desc()
-	ch <- e.iota_node_info_total_neighbors.Desc()
-	ch <- e.iota_node_info_total_tips.Desc()
-	ch <- e.iota_node_info_total_transactions_queued.Desc()
+func describeNodeinfo(e *exporter, ch chan<- *prometheus.Desc) {
+	ch <- e.iotaNodeInfoDuration.Desc()
+	ch <- e.iotaNodeInfoAvailableProcessors.Desc()
+	ch <- e.iotaNodeInfoFreeMemory.Desc()
+	ch <- e.iotaNodeInfoMaxMemory.Desc()
+	ch <- e.iotaNodeInfoTotalMemory.Desc()
+	ch <- e.iotaNodeInfoLatestMilestone.Desc()
+	ch <- e.iotaNodeInfoLatestSubtangleMilestone.Desc()
+	ch <- e.iotaNodeInfoTotalNeighbors.Desc()
+	ch <- e.iotaNodeInfoTotalTips.Desc()
+	ch <- e.iotaNodeInfoTotalTransactionsQueued.Desc()
 }
 
-func collect_nodeinfo(e *Exporter, ch chan<- prometheus.Metric) {
-	ch <- e.iota_node_info_duration
-	ch <- e.iota_node_info_available_processors
-	ch <- e.iota_node_info_free_memory
-	ch <- e.iota_node_info_max_memory
-	ch <- e.iota_node_info_total_memory
-	ch <- e.iota_node_info_latest_milestone
-	ch <- e.iota_node_info_latest_subtangle_milestone
-	ch <- e.iota_node_info_total_neighbors
-	ch <- e.iota_node_info_total_tips
-	ch <- e.iota_node_info_total_transactions_queued
+func collectNodeinfo(e *exporter, ch chan<- prometheus.Metric) {
+	ch <- e.iotaNodeInfoDuration
+	ch <- e.iotaNodeInfoAvailableProcessors
+	ch <- e.iotaNodeInfoFreeMemory
+	ch <- e.iotaNodeInfoMaxMemory
+	ch <- e.iotaNodeInfoTotalMemory
+	ch <- e.iotaNodeInfoLatestMilestone
+	ch <- e.iotaNodeInfoLatestSubtangleMilestone
+	ch <- e.iotaNodeInfoTotalNeighbors
+	ch <- e.iotaNodeInfoTotalTips
+	ch <- e.iotaNodeInfoTotalTransactionsQueued
 }
 
-func scrape_nodeinfo(e *Exporter, api *giota.API) {
+func scrapeNodeinfo(e *exporter, api *giota.API) {
 	resp, err := api.GetNodeInfo()
 
 	if err == nil {
 		// Set response values into the predefined metrics
-		e.iota_node_info_duration.Set(float64(resp.Duration))
-		e.iota_node_info_available_processors.Set(float64(resp.JREAvailableProcessors))
-		e.iota_node_info_free_memory.Set(float64(resp.JREFreeMemory))
-		e.iota_node_info_max_memory.Set(float64(resp.JREMaxMemory))
-		e.iota_node_info_total_memory.Set(float64(resp.JRETotalMemory))
-		e.iota_node_info_latest_milestone.Set(float64(resp.LatestMilestoneIndex))
-		e.iota_node_info_latest_subtangle_milestone.Set(float64(resp.LatestSolidSubtangleMilestoneIndex))
-		e.iota_node_info_total_neighbors.Set(float64(resp.Neighbors))
-		e.iota_node_info_total_tips.Set(float64(resp.Tips))
-		e.iota_node_info_total_transactions_queued.Set(float64(resp.TransactionsToRequest))
+		e.iotaNodeInfoDuration.Set(float64(resp.Duration))
+		e.iotaNodeInfoAvailableProcessors.Set(float64(resp.JREAvailableProcessors))
+		e.iotaNodeInfoFreeMemory.Set(float64(resp.JREFreeMemory))
+		e.iotaNodeInfoMaxMemory.Set(float64(resp.JREMaxMemory))
+		e.iotaNodeInfoTotalMemory.Set(float64(resp.JRETotalMemory))
+		e.iotaNodeInfoLatestMilestone.Set(float64(resp.LatestMilestoneIndex))
+		e.iotaNodeInfoLatestSubtangleMilestone.Set(float64(resp.LatestSolidSubtangleMilestoneIndex))
+		e.iotaNodeInfoTotalNeighbors.Set(float64(resp.Neighbors))
+		e.iotaNodeInfoTotalTips.Set(float64(resp.Tips))
+		e.iotaNodeInfoTotalTransactionsQueued.Set(float64(resp.TransactionsToRequest))
 
-		e.iota_node_info_totalScrapes.Inc()
+		e.iotaNodeInfoTotalScrapes.Inc()
 	} else {
 		log.Info(err)
 	}

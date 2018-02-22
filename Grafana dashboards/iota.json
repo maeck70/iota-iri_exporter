@@ -80,7 +80,7 @@
           "tableColumn": "",
           "targets": [
             {
-              "expr": "iota_node_info_latest_milestone",
+              "expr": "iotaNodeInfoLatestMilestone",
               "format": "time_series",
               "hide": false,
               "instant": true,
@@ -157,7 +157,7 @@
           "tableColumn": "",
           "targets": [
             {
-              "expr": "iota_node_info_latest_subtangle_milestone",
+              "expr": "iotaNodeInfoLatestSubtangleMilestone",
               "format": "time_series",
               "hide": false,
               "intervalFactor": 2,
@@ -234,7 +234,7 @@
           "tableColumn": "",
           "targets": [
             {
-              "expr": "iota_node_info_total_transactions_queued",
+              "expr": "iotaNodeInfoTotalTransactionsQueued",
               "format": "time_series",
               "hide": false,
               "instant": false,
@@ -311,7 +311,7 @@
           "tableColumn": "",
           "targets": [
             {
-              "expr": "iota_node_info_total_tips",
+              "expr": "iotaNodeInfoTotalTips",
               "format": "time_series",
               "hide": false,
               "instant": false,
@@ -388,7 +388,7 @@
           "tableColumn": "",
           "targets": [
             {
-              "expr": "iota_node_info_total_neighbors",
+              "expr": "iotaNodeInfoTotalNeighbors",
               "format": "time_series",
               "hide": false,
               "instant": false,
@@ -1063,7 +1063,7 @@
           "steppedLine": false,
           "targets": [
             {
-              "expr": "iota_market_trade_price{pair=\"IOTUSD\"}",
+              "expr": "iotaMarketTradePrice{pair=\"IOTUSD\"}",
               "format": "time_series",
               "interval": "",
               "intervalFactor": 2,
@@ -1071,7 +1071,7 @@
               "refId": "A"
             },
             {
-              "expr": "iota_market_trade_volume{pair=\"IOTUSD\"}",
+              "expr": "iotaMarketTradeVolume{pair=\"IOTUSD\"}",
               "format": "time_series",
               "interval": "",
               "intervalFactor": 2,
@@ -1158,7 +1158,7 @@
           "steppedLine": false,
           "targets": [
             {
-              "expr": "iota_market_trade_price{pair=\"IOTBTC\"}",
+              "expr": "iotaMarketTradePrice{pair=\"IOTBTC\"}",
               "format": "time_series",
               "interval": "",
               "intervalFactor": 2,
@@ -1166,7 +1166,7 @@
               "refId": "A"
             },
             {
-              "expr": "iota_market_trade_volume{pair=\"IOTBTC\"}",
+              "expr": "iotaMarketTradeVolume{pair=\"IOTBTC\"}",
               "format": "time_series",
               "interval": "",
               "intervalFactor": 2,
@@ -1265,7 +1265,7 @@
           "steppedLine": false,
           "targets": [
             {
-              "expr": "iota_market_trade_price{pair=\"IOTETH\"}",
+              "expr": "iotaMarketTradePrice{pair=\"IOTETH\"}",
               "format": "time_series",
               "interval": "",
               "intervalFactor": 2,
@@ -1273,7 +1273,7 @@
               "refId": "A"
             },
             {
-              "expr": "iota_market_trade_volume{pair=\"IOTETH\"}",
+              "expr": "iotaMarketTradeVolume{pair=\"IOTETH\"}",
               "format": "time_series",
               "interval": "",
               "intervalFactor": 2,
@@ -1357,14 +1357,14 @@
           "steppedLine": false,
           "targets": [
             {
-              "expr": "iota_market_trade_price{pair=\"BTCUSD\"}",
+              "expr": "iotaMarketTradePrice{pair=\"BTCUSD\"}",
               "format": "time_series",
               "intervalFactor": 2,
               "legendFormat": "Price",
               "refId": "A"
             },
             {
-              "expr": "iota_market_trade_volume{pair=\"BTCUSD\"}",
+              "expr": "iotaMarketTradeVolume{pair=\"BTCUSD\"}",
               "format": "time_series",
               "intervalFactor": 2,
               "legendFormat": "Volume",
@@ -1454,7 +1454,7 @@
           "steppedLine": false,
           "targets": [
             {
-              "expr": "delta(iota_neighbors_new_transactions[1m])",
+              "expr": "delta(iotaNeighborsNewTransactions[1m])",
               "format": "time_series",
               "hide": false,
               "intervalFactor": 2,
@@ -1532,7 +1532,7 @@
           "steppedLine": false,
           "targets": [
             {
-              "expr": "delta(iota_neighbors_random_transactions[1m])",
+              "expr": "delta(iotaNeighborsRandomTransactions[1m])",
               "format": "time_series",
               "hide": false,
               "intervalFactor": 2,
@@ -1612,7 +1612,7 @@
           "steppedLine": false,
           "targets": [
             {
-              "expr": "delta(iota_neighbors_all_transactions[1m])",
+              "expr": "delta(iotaNeighborsAllTransactions[1m])",
               "format": "time_series",
               "hide": false,
               "intervalFactor": 2,
@@ -1693,7 +1693,7 @@
           "steppedLine": false,
           "targets": [
             {
-              "expr": "delta(iota_neighbors_invalid_transactions[1m])",
+              "expr": "delta(iotaNeighborsInvalidTransactions[1m])",
               "format": "time_series",
               "hide": false,
               "interval": "",
@@ -1792,7 +1792,7 @@
           "steppedLine": false,
           "targets": [
             {
-              "expr": "delta(iota_neighbors_new_transactions{id=~\"$neighbor\"}[1m])",
+              "expr": "delta(iotaNeighborsNewTransactions{id=~\"$neighbor\"}[1m])",
               "format": "time_series",
               "hide": false,
               "intervalFactor": 2,
@@ -1800,14 +1800,14 @@
               "refId": "A"
             },
             {
-              "expr": "delta(iota_neighbors_random_transactions{id=~\"$neighbor\"}[1m])",
+              "expr": "delta(iotaNeighborsRandomTransactions{id=~\"$neighbor\"}[1m])",
               "format": "time_series",
               "intervalFactor": 2,
               "legendFormat": "Random",
               "refId": "B"
             },
             {
-              "expr": "delta(iota_neighbors_all_transactions{id=~\"$neighbor\"}[1m])",
+              "expr": "delta(iotaNeighborsAllTransactions{id=~\"$neighbor\"}[1m])",
               "format": "time_series",
               "interval": "",
               "intervalFactor": 2,
@@ -1815,7 +1815,7 @@
               "refId": "C"
             },
             {
-              "expr": "delta(iota_neighbors_invalid_transactions{id=~\"$neighbor\"}[1m])",
+              "expr": "delta(iotaNeighborsInvalidTransactions{id=~\"$neighbor\"}[1m])",
               "format": "time_series",
               "intervalFactor": 2,
               "legendFormat": "Invalid",
@@ -1901,7 +1901,7 @@
           "steppedLine": false,
           "targets": [
             {
-              "expr": "delta(iota_neighbors_new_transactions{id=~\"$neighbor\"}[1m])",
+              "expr": "delta(iotaNeighborsNewTransactions{id=~\"$neighbor\"}[1m])",
               "format": "time_series",
               "hide": false,
               "intervalFactor": 2,
@@ -1909,14 +1909,14 @@
               "refId": "A"
             },
             {
-              "expr": "delta(iota_neighbors_random_transactions{id=~\"$neighbor\"}[1m])",
+              "expr": "delta(iotaNeighborsRandomTransactions{id=~\"$neighbor\"}[1m])",
               "format": "time_series",
               "intervalFactor": 2,
               "legendFormat": "Random",
               "refId": "B"
             },
             {
-              "expr": "delta(iota_neighbors_all_transactions{id=~\"$neighbor\"}[1m])",
+              "expr": "delta(iotaNeighborsAllTransactions{id=~\"$neighbor\"}[1m])",
               "format": "time_series",
               "interval": "",
               "intervalFactor": 2,
@@ -1924,7 +1924,7 @@
               "refId": "C"
             },
             {
-              "expr": "delta(iota_neighbors_invalid_transactions{id=~\"$neighbor\"}[1m])",
+              "expr": "delta(iotaNeighborsInvalidTransactions{id=~\"$neighbor\"}[1m])",
               "format": "time_series",
               "intervalFactor": 2,
               "legendFormat": "Invalid",
@@ -2010,7 +2010,7 @@
           "steppedLine": false,
           "targets": [
             {
-              "expr": "delta(iota_neighbors_new_transactions{id=~\"$neighbor\"}[1m])",
+              "expr": "delta(iotaNeighborsNewTransactions{id=~\"$neighbor\"}[1m])",
               "format": "time_series",
               "hide": false,
               "intervalFactor": 2,
@@ -2018,14 +2018,14 @@
               "refId": "A"
             },
             {
-              "expr": "delta(iota_neighbors_random_transactions{id=~\"$neighbor\"}[1m])",
+              "expr": "delta(iotaNeighborsRandomTransactions{id=~\"$neighbor\"}[1m])",
               "format": "time_series",
               "intervalFactor": 2,
               "legendFormat": "Random",
               "refId": "B"
             },
             {
-              "expr": "delta(iota_neighbors_all_transactions{id=~\"$neighbor\"}[1m])",
+              "expr": "delta(iotaNeighborsAllTransactions{id=~\"$neighbor\"}[1m])",
               "format": "time_series",
               "interval": "",
               "intervalFactor": 2,
@@ -2033,7 +2033,7 @@
               "refId": "C"
             },
             {
-              "expr": "delta(iota_neighbors_invalid_transactions{id=~\"$neighbor\"}[1m])",
+              "expr": "delta(iotaNeighborsInvalidTransactions{id=~\"$neighbor\"}[1m])",
               "format": "time_series",
               "intervalFactor": 2,
               "legendFormat": "Invalid",
@@ -2119,7 +2119,7 @@
           "steppedLine": false,
           "targets": [
             {
-              "expr": "delta(iota_neighbors_new_transactions{id=~\"$neighbor\"}[1m])",
+              "expr": "delta(iotaNeighborsNewTransactions{id=~\"$neighbor\"}[1m])",
               "format": "time_series",
               "hide": false,
               "intervalFactor": 2,
@@ -2127,14 +2127,14 @@
               "refId": "A"
             },
             {
-              "expr": "delta(iota_neighbors_random_transactions{id=~\"$neighbor\"}[1m])",
+              "expr": "delta(iotaNeighborsRandomTransactions{id=~\"$neighbor\"}[1m])",
               "format": "time_series",
               "intervalFactor": 2,
               "legendFormat": "Random",
               "refId": "B"
             },
             {
-              "expr": "delta(iota_neighbors_all_transactions{id=~\"$neighbor\"}[1m])",
+              "expr": "delta(iotaNeighborsAllTransactions{id=~\"$neighbor\"}[1m])",
               "format": "time_series",
               "interval": "",
               "intervalFactor": 2,
@@ -2142,7 +2142,7 @@
               "refId": "C"
             },
             {
-              "expr": "delta(iota_neighbors_invalid_transactions{id=~\"$neighbor\"}[1m])",
+              "expr": "delta(iotaNeighborsInvalidTransactions{id=~\"$neighbor\"}[1m])",
               "format": "time_series",
               "intervalFactor": 2,
               "legendFormat": "Invalid",
@@ -2228,7 +2228,7 @@
           "steppedLine": false,
           "targets": [
             {
-              "expr": "delta(iota_neighbors_new_transactions{id=~\"$neighbor\"}[1m])",
+              "expr": "delta(iotaNeighborsNewTransactions{id=~\"$neighbor\"}[1m])",
               "format": "time_series",
               "hide": false,
               "intervalFactor": 2,
@@ -2236,14 +2236,14 @@
               "refId": "A"
             },
             {
-              "expr": "delta(iota_neighbors_random_transactions{id=~\"$neighbor\"}[1m])",
+              "expr": "delta(iotaNeighborsRandomTransactions{id=~\"$neighbor\"}[1m])",
               "format": "time_series",
               "intervalFactor": 2,
               "legendFormat": "Random",
               "refId": "B"
             },
             {
-              "expr": "delta(iota_neighbors_all_transactions{id=~\"$neighbor\"}[1m])",
+              "expr": "delta(iotaNeighborsAllTransactions{id=~\"$neighbor\"}[1m])",
               "format": "time_series",
               "interval": "",
               "intervalFactor": 2,
@@ -2251,7 +2251,7 @@
               "refId": "C"
             },
             {
-              "expr": "delta(iota_neighbors_invalid_transactions{id=~\"$neighbor\"}[1m])",
+              "expr": "delta(iotaNeighborsInvalidTransactions{id=~\"$neighbor\"}[1m])",
               "format": "time_series",
               "intervalFactor": 2,
               "legendFormat": "Invalid",
@@ -2337,7 +2337,7 @@
           "steppedLine": false,
           "targets": [
             {
-              "expr": "delta(iota_neighbors_new_transactions{id=~\"$neighbor\"}[1m])",
+              "expr": "delta(iotaNeighborsNewTransactions{id=~\"$neighbor\"}[1m])",
               "format": "time_series",
               "hide": false,
               "intervalFactor": 2,
@@ -2345,14 +2345,14 @@
               "refId": "A"
             },
             {
-              "expr": "delta(iota_neighbors_random_transactions{id=~\"$neighbor\"}[1m])",
+              "expr": "delta(iotaNeighborsRandomTransactions{id=~\"$neighbor\"}[1m])",
               "format": "time_series",
               "intervalFactor": 2,
               "legendFormat": "Random",
               "refId": "B"
             },
             {
-              "expr": "delta(iota_neighbors_all_transactions{id=~\"$neighbor\"}[1m])",
+              "expr": "delta(iotaNeighborsAllTransactions{id=~\"$neighbor\"}[1m])",
               "format": "time_series",
               "interval": "",
               "intervalFactor": 2,
@@ -2360,7 +2360,7 @@
               "refId": "C"
             },
             {
-              "expr": "delta(iota_neighbors_invalid_transactions{id=~\"$neighbor\"}[1m])",
+              "expr": "delta(iotaNeighborsInvalidTransactions{id=~\"$neighbor\"}[1m])",
               "format": "time_series",
               "intervalFactor": 2,
               "legendFormat": "Invalid",
@@ -2446,7 +2446,7 @@
           "steppedLine": false,
           "targets": [
             {
-              "expr": "delta(iota_neighbors_new_transactions{id=~\"$neighbor\"}[1m])",
+              "expr": "delta(iotaNeighborsNewTransactions{id=~\"$neighbor\"}[1m])",
               "format": "time_series",
               "hide": false,
               "intervalFactor": 2,
@@ -2454,14 +2454,14 @@
               "refId": "A"
             },
             {
-              "expr": "delta(iota_neighbors_random_transactions{id=~\"$neighbor\"}[1m])",
+              "expr": "delta(iotaNeighborsRandomTransactions{id=~\"$neighbor\"}[1m])",
               "format": "time_series",
               "intervalFactor": 2,
               "legendFormat": "Random",
               "refId": "B"
             },
             {
-              "expr": "delta(iota_neighbors_all_transactions{id=~\"$neighbor\"}[1m])",
+              "expr": "delta(iotaNeighborsAllTransactions{id=~\"$neighbor\"}[1m])",
               "format": "time_series",
               "interval": "",
               "intervalFactor": 2,
@@ -2469,7 +2469,7 @@
               "refId": "C"
             },
             {
-              "expr": "delta(iota_neighbors_invalid_transactions{id=~\"$neighbor\"}[1m])",
+              "expr": "delta(iotaNeighborsInvalidTransactions{id=~\"$neighbor\"}[1m])",
               "format": "time_series",
               "intervalFactor": 2,
               "legendFormat": "Invalid",
@@ -2555,7 +2555,7 @@
           "steppedLine": false,
           "targets": [
             {
-              "expr": "delta(iota_neighbors_new_transactions{id=~\"$neighbor\"}[1m])",
+              "expr": "delta(iotaNeighborsNewTransactions{id=~\"$neighbor\"}[1m])",
               "format": "time_series",
               "hide": false,
               "intervalFactor": 2,
@@ -2563,14 +2563,14 @@
               "refId": "A"
             },
             {
-              "expr": "delta(iota_neighbors_random_transactions{id=~\"$neighbor\"}[1m])",
+              "expr": "delta(iotaNeighborsRandomTransactions{id=~\"$neighbor\"}[1m])",
               "format": "time_series",
               "intervalFactor": 2,
               "legendFormat": "Random",
               "refId": "B"
             },
             {
-              "expr": "delta(iota_neighbors_all_transactions{id=~\"$neighbor\"}[1m])",
+              "expr": "delta(iotaNeighborsAllTransactions{id=~\"$neighbor\"}[1m])",
               "format": "time_series",
               "interval": "",
               "intervalFactor": 2,
@@ -2578,7 +2578,7 @@
               "refId": "C"
             },
             {
-              "expr": "delta(iota_neighbors_invalid_transactions{id=~\"$neighbor\"}[1m])",
+              "expr": "delta(iotaNeighborsInvalidTransactions{id=~\"$neighbor\"}[1m])",
               "format": "time_series",
               "intervalFactor": 2,
               "legendFormat": "Invalid",
@@ -2664,7 +2664,7 @@
           "steppedLine": false,
           "targets": [
             {
-              "expr": "delta(iota_neighbors_new_transactions{id=~\"$neighbor\"}[1m])",
+              "expr": "delta(iotaNeighborsNewTransactions{id=~\"$neighbor\"}[1m])",
               "format": "time_series",
               "hide": false,
               "intervalFactor": 2,
@@ -2672,14 +2672,14 @@
               "refId": "A"
             },
             {
-              "expr": "delta(iota_neighbors_random_transactions{id=~\"$neighbor\"}[1m])",
+              "expr": "delta(iotaNeighborsRandomTransactions{id=~\"$neighbor\"}[1m])",
               "format": "time_series",
               "intervalFactor": 2,
               "legendFormat": "Random",
               "refId": "B"
             },
             {
-              "expr": "delta(iota_neighbors_all_transactions{id=~\"$neighbor\"}[1m])",
+              "expr": "delta(iotaNeighborsAllTransactions{id=~\"$neighbor\"}[1m])",
               "format": "time_series",
               "interval": "",
               "intervalFactor": 2,
@@ -2687,7 +2687,7 @@
               "refId": "C"
             },
             {
-              "expr": "delta(iota_neighbors_invalid_transactions{id=~\"$neighbor\"}[1m])",
+              "expr": "delta(iotaNeighborsInvalidTransactions{id=~\"$neighbor\"}[1m])",
               "format": "time_series",
               "intervalFactor": 2,
               "legendFormat": "Invalid",
@@ -2773,7 +2773,7 @@
           "steppedLine": false,
           "targets": [
             {
-              "expr": "delta(iota_neighbors_new_transactions{id=~\"$neighbor\"}[1m])",
+              "expr": "delta(iotaNeighborsNewTransactions{id=~\"$neighbor\"}[1m])",
               "format": "time_series",
               "hide": false,
               "intervalFactor": 2,
@@ -2781,14 +2781,14 @@
               "refId": "A"
             },
             {
-              "expr": "delta(iota_neighbors_random_transactions{id=~\"$neighbor\"}[1m])",
+              "expr": "delta(iotaNeighborsRandomTransactions{id=~\"$neighbor\"}[1m])",
               "format": "time_series",
               "intervalFactor": 2,
               "legendFormat": "Random",
               "refId": "B"
             },
             {
-              "expr": "delta(iota_neighbors_all_transactions{id=~\"$neighbor\"}[1m])",
+              "expr": "delta(iotaNeighborsAllTransactions{id=~\"$neighbor\"}[1m])",
               "format": "time_series",
               "interval": "",
               "intervalFactor": 2,
@@ -2796,7 +2796,7 @@
               "refId": "C"
             },
             {
-              "expr": "delta(iota_neighbors_invalid_transactions{id=~\"$neighbor\"}[1m])",
+              "expr": "delta(iotaNeighborsInvalidTransactions{id=~\"$neighbor\"}[1m])",
               "format": "time_series",
               "intervalFactor": 2,
               "legendFormat": "Invalid",
@@ -2882,7 +2882,7 @@
           "steppedLine": false,
           "targets": [
             {
-              "expr": "delta(iota_neighbors_new_transactions{id=~\"$neighbor\"}[1m])",
+              "expr": "delta(iotaNeighborsNewTransactions{id=~\"$neighbor\"}[1m])",
               "format": "time_series",
               "hide": false,
               "intervalFactor": 2,
@@ -2890,14 +2890,14 @@
               "refId": "A"
             },
             {
-              "expr": "delta(iota_neighbors_random_transactions{id=~\"$neighbor\"}[1m])",
+              "expr": "delta(iotaNeighborsRandomTransactions{id=~\"$neighbor\"}[1m])",
               "format": "time_series",
               "intervalFactor": 2,
               "legendFormat": "Random",
               "refId": "B"
             },
             {
-              "expr": "delta(iota_neighbors_all_transactions{id=~\"$neighbor\"}[1m])",
+              "expr": "delta(iotaNeighborsAllTransactions{id=~\"$neighbor\"}[1m])",
               "format": "time_series",
               "interval": "",
               "intervalFactor": 2,
@@ -2905,7 +2905,7 @@
               "refId": "C"
             },
             {
-              "expr": "delta(iota_neighbors_invalid_transactions{id=~\"$neighbor\"}[1m])",
+              "expr": "delta(iotaNeighborsInvalidTransactions{id=~\"$neighbor\"}[1m])",
               "format": "time_series",
               "intervalFactor": 2,
               "legendFormat": "Invalid",
@@ -2980,7 +2980,7 @@
         "multi": true,
         "name": "neighbor",
         "options": [],
-        "query": "label_values(iota_neighbors_all_transactions, id)",
+        "query": "label_values(iotaNeighborsAllTransactions, id)",
         "refresh": 1,
         "regex": "",
         "sort": 1,

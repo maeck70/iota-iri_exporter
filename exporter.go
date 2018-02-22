@@ -35,7 +35,7 @@ import (
 	"runtime"
 )
 
-// Version is set during build to the git describe version
+// Version is set during build to the git Describe version
 // (semantic version)-(commitish) form.
 var Version = "0.3.3"
 
@@ -50,47 +50,47 @@ const (
 	namespace = "iota-iri"
 )
 
-type Exporter struct {
+type exporter struct {
 	iriAddress string
 
-	iota_node_info_totalScrapes               prometheus.Counter
-	iota_node_info_duration                   prometheus.Gauge
-	iota_node_info_available_processors       prometheus.Gauge
-	iota_node_info_free_memory                prometheus.Gauge
-	iota_node_info_max_memory                 prometheus.Gauge
-	iota_node_info_total_memory               prometheus.Gauge
-	iota_node_info_latest_milestone           prometheus.Gauge
-	iota_node_info_latest_subtangle_milestone prometheus.Gauge
-	iota_node_info_total_neighbors            prometheus.Gauge
-	iota_node_info_total_tips                 prometheus.Gauge
-	iota_node_info_total_transactions_queued  prometheus.Gauge
-	iota_neighbors_info_total_neighbors       prometheus.Gauge
-	iota_neighbors_info_active_neighbors      prometheus.Gauge
-	iota_neighbors_new_transactions           *prometheus.GaugeVec
-	iota_neighbors_random_transactions        *prometheus.GaugeVec
-	iota_neighbors_all_transactions           *prometheus.GaugeVec
-	iota_neighbors_invalid_transactions       *prometheus.GaugeVec
-	iota_neighbors_sent_transactions          *prometheus.GaugeVec
-	iota_neighbors_active                     *prometheus.GaugeVec
-	iota_zmq_seen_tx_count                    prometheus.Gauge
-	iota_zmq_txs_with_value_count             prometheus.Gauge
-	iota_zmq_confirmed_tx_count               prometheus.Gauge
-	iota_zmq_to_request                       prometheus.Gauge
-	iota_zmq_to_process                       prometheus.Gauge
-	iota_zmq_to_broadcast                     prometheus.Gauge
-	iota_zmq_to_reply                         prometheus.Gauge
-	iota_zmq_total_transactions               prometheus.Gauge
-	iota_market_trade_price                   *prometheus.GaugeVec
-	iota_market_trade_volume                  *prometheus.GaugeVec
-	iota_market_high_price                    *prometheus.GaugeVec
-	iota_market_low_price                     *prometheus.GaugeVec
+	iotaNodeInfoTotalScrapes             prometheus.Counter
+	iotaNodeInfoDuration                 prometheus.Gauge
+	iotaNodeInfoAvailableProcessors      prometheus.Gauge
+	iotaNodeInfoFreeMemory               prometheus.Gauge
+	iotaNodeInfoMaxMemory                prometheus.Gauge
+	iotaNodeInfoTotalMemory              prometheus.Gauge
+	iotaNodeInfoLatestMilestone          prometheus.Gauge
+	iotaNodeInfoLatestSubtangleMilestone prometheus.Gauge
+	iotaNodeInfoTotalNeighbors           prometheus.Gauge
+	iotaNodeInfoTotalTips                prometheus.Gauge
+	iotaNodeInfoTotalTransactionsQueued  prometheus.Gauge
+	iotaNeighborsInfoTotalNeighbors      prometheus.Gauge
+	iotaNeighborsInfoActiveNeighbors     prometheus.Gauge
+	iotaNeighborsNewTransactions         *prometheus.GaugeVec
+	iotaNeighborsRandomTransactions      *prometheus.GaugeVec
+	iotaNeighborsAllTransactions         *prometheus.GaugeVec
+	iotaNeighborsInvalidTransactions     *prometheus.GaugeVec
+	iotaNeighborsSentTransactions        *prometheus.GaugeVec
+	iotaNeighborsActive                  *prometheus.GaugeVec
+	iotaZmqSeenTxCount                   prometheus.Gauge
+	iotaZmqTxsWithValueCount             prometheus.Gauge
+	iotaZmqConfirmedTxCount              prometheus.Gauge
+	iotaZmqToRequest                     prometheus.Gauge
+	iotaZmqToProcess                     prometheus.Gauge
+	iotaZmqToBroadcast                   prometheus.Gauge
+	iotaZmqToReply                       prometheus.Gauge
+	iotaZmqTotalTransactions             prometheus.Gauge
+	iotaMarketTradePrice                 *prometheus.GaugeVec
+	iotaMarketTradeVolume                *prometheus.GaugeVec
+	iotaMarketHighPrice                  *prometheus.GaugeVec
+	iotaMarketLowPrice                   *prometheus.GaugeVec
 }
 
-func NewExporter(iriAddress string) *Exporter {
-	e := &Exporter{
+func newExporter(iriAddress string) *exporter {
+	e := &exporter{
 		iriAddress: iriAddress,
 
-		iota_node_info_totalScrapes: prometheus.NewCounter(
+		iotaNodeInfoTotalScrapes: prometheus.NewCounter(
 			prometheus.CounterOpts{
 				//Namespace: namespace,
 				//Subsystem: "exporter",
@@ -100,42 +100,42 @@ func NewExporter(iriAddress string) *Exporter {
 			}),
 	}
 
-	metrics_nodeinfo(e)
-	metrics_neighbors(e)
-	metrics_zmq(e)
-	metrics_bitfinex(e)
+	metricsNodeinfo(e)
+	metricsNeighbors(e)
+	metricsZmq(e)
+	metricsBitfinex(e)
 
 	return e
 }
 
-func (e *Exporter) Describe(ch chan<- *prometheus.Desc) {
+func (e *exporter) Describe(ch chan<- *prometheus.Desc) {
 
-	ch <- e.iota_node_info_totalScrapes.Desc()
+	ch <- e.iotaNodeInfoTotalScrapes.Desc()
 
-	describe_nodeinfo(e, ch)
-	describe_neighbors(e, ch)
-	describe_zmq(e, ch)
-	describe_bitfinex(e, ch)
+	describeNodeinfo(e, ch)
+	describeNeighbors(e, ch)
+	describeZmq(e, ch)
+	describeBitfinex(e, ch)
 }
 
-func (e *Exporter) Collect(ch chan<- prometheus.Metric) {
+func (e *exporter) Collect(ch chan<- prometheus.Metric) {
 	e.scrape(ch)
-	ch <- e.iota_node_info_totalScrapes
+	ch <- e.iotaNodeInfoTotalScrapes
 
-	collect_nodeinfo(e, ch)
-	collect_neighbors(e, ch)
-	collect_zmq(e, ch)
-	collect_bitfinex(e, ch)
+	collectNodeinfo(e, ch)
+	collectNeighbors(e, ch)
+	collectZmq(e, ch)
+	collectBitfinex(e, ch)
 }
 
-func (e *Exporter) scrape(ch chan<- prometheus.Metric) {
+func (e *exporter) scrape(ch chan<- prometheus.Metric) {
 
 	api := giota.NewAPI(e.iriAddress, nil)
 
-	scrape_nodeinfo(e, api)
-	scrape_neighbors(e, api)
-	scrape_zmq(e)
-	scrape_bitfinex(e)
+	scrapeNodeinfo(e, api)
+	scrapeNeighbors(e, api)
+	scrapeZmq(e)
+	scrapeBitfinex(e)
 }
 
 func main() {
@@ -146,18 +146,18 @@ func main() {
 	// landingPage contains the HTML served at '/'.
 	// TODO: Make this nicer and more informative.
 	var landingPage = []byte(`<html>
-	<head><title>Iota-IRI Exporter</title></head>
+	<head><title>Iota-IRI exporter</title></head>
 	<body>
-	<h1>Iota-IRI Node Exporter</h1>
+	<h1>Iota-IRI Node exporter</h1>
 	<p><a href='` + *metricPath + `'>Metrics</a></p>
 	</body>
 	</html>
 	`)
 
-	exporter := NewExporter(*targetAddress)
+	exporter := newExporter(*targetAddress)
 	prometheus.MustRegister(exporter)
 
-	init_zmq(targetZmqAddress)
+	initZmq(targetZmqAddress)
 
 	http.Handle(*metricPath, promhttp.Handler())
 	http.HandleFunc("/", func(w http.ResponseWriter, r *http.Request) {

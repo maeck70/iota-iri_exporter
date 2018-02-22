@@ -31,13 +31,13 @@ import (
 	"github.com/prometheus/common/log"
 )
 
-const NEIGHBOR_MAX = 32
-const HISTORY_MAX = 5
+const neighborMax = 32
+const historyMax = 5
 
 var neighbormatrix = neighborMatrix{}
 
 func getNeighborHash(n giota.Neighbor) string {
-	s := fmt.Sprintf("%s %s %s %s", n.Address, n.NumberOfAllTransactions, n.NumberOfInvalidTransactions, n.NumberOfNewTransactions)
+	s := fmt.Sprintf("%s %d %d %d", n.Address, n.NumberOfAllTransactions, n.NumberOfInvalidTransactions, n.NumberOfNewTransactions)
 	h := sha1.New()
 	h.Write([]byte(s))
 	bs := h.Sum(nil)
@@ -46,12 +46,12 @@ func getNeighborHash(n giota.Neighbor) string {
 
 type neighborHistory struct {
 	address string
-	history [HISTORY_MAX]string //Neighbor
+	history [historyMax]string //Neighbor
 }
 
 type neighborMatrix struct {
 	ptr             int
-	neighborhistory [NEIGHBOR_MAX]neighborHistory
+	neighborhistory [neighborMax]neighborHistory
 }
 
 func (nm *neighborMatrix) findNeighbor(addr string) (*neighborHistory, int) {
@@ -81,7 +81,7 @@ func (nm *neighborMatrix) register(n giota.Neighbor) {
 func (nm *neighborMatrix) isActive(addr string) bool {
 	nh, _ := nm.findNeighbor(string(addr))
 	compare := nh.history[0]
-	for p := 1; p < HISTORY_MAX; p++ {
+	for p := 1; p < historyMax; p++ {
 		if compare != nh.history[p] {
 			return true
 		}
@@ -90,27 +90,27 @@ func (nm *neighborMatrix) isActive(addr string) bool {
 }
 
 func (nm *neighborMatrix) historyInc() {
-	nm.ptr += 1
-	if nm.ptr >= HISTORY_MAX {
+	nm.ptr++
+	if nm.ptr >= historyMax {
 		nm.ptr = 0
 	}
 }
 
-func GetActiveNeighbor(addr string) float64 {
+func getActiveNeighbor(addr string) float64 {
 	status := neighbormatrix.isActive(addr)
 	log.Debugf("Neighbor with address %s active status is %v", addr, status)
 	return btof(status)
 }
 
-func GetActiveNeighbors(neighborlist []giota.Neighbor) float64 {
+func getActiveNeighbors(neighborlist []giota.Neighbor) float64 {
 
 	neighbormatrix.historyInc()
 
-	active_count := 0
+	activeCount := 0
 	for n := range neighborlist {
 		neighbormatrix.register(neighborlist[n])
-		active_count += btoi(neighbormatrix.isActive(string(neighborlist[n].Address)))
+		activeCount += btoi(neighbormatrix.isActive(string(neighborlist[n].Address)))
 	}
-	log.Debugf("There are %v of %v active Neighbors.", active_count, len(neighborlist))
-	return float64(active_count)
+	log.Debugf("There are %v of %v active Neighbors.", activeCount, len(neighborlist))
+	return float64(activeCount)
 }

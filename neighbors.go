@@ -31,8 +31,8 @@ import (
 	"github.com/prometheus/common/log"
 )
 
-func metrics_neighbors(e *Exporter) {
-	e.iota_neighbors_info_total_neighbors = prometheus.NewGauge(
+func metricsNeighbors(e *exporter) {
+	e.iotaNeighborsInfoTotalNeighbors = prometheus.NewGauge(
 		prometheus.GaugeOpts{
 			//Namespace: namespace,
 			//Subsystem: "exporter",
@@ -41,17 +41,17 @@ func metrics_neighbors(e *Exporter) {
 			Help: "Total number of neighbors as received in the getNeighbors ws call.",
 		})
 
-	e.iota_neighbors_info_active_neighbors = prometheus.NewGauge(
+	e.iotaNeighborsInfoActiveNeighbors = prometheus.NewGauge(
 		prometheus.GaugeOpts{
 			//Namespace: namespace,
 			//Subsystem: "exporter",
 			//Name: "total_neighbors_ws",
-			//Name: "iota_neighbors_info_active_neighbors", // This is the naming in the Grafana dashboard
+			//Name: "iotaNeighborsInfoActiveNeighbors", // This is the naming in the Grafana dashboard
 			Name: "iota_neighbors_active_neighbors",
 			Help: "Total number of neighbors that are active.",
 		})
 
-	e.iota_neighbors_new_transactions = prometheus.NewGaugeVec(
+	e.iotaNeighborsNewTransactions = prometheus.NewGaugeVec(
 		prometheus.GaugeOpts{
 			//Namespace: namespace,
 			//Subsystem: "exporter",
@@ -62,7 +62,7 @@ func metrics_neighbors(e *Exporter) {
 		[]string{"id"},
 	)
 
-	e.iota_neighbors_random_transactions = prometheus.NewGaugeVec(
+	e.iotaNeighborsRandomTransactions = prometheus.NewGaugeVec(
 		prometheus.GaugeOpts{
 			//Namespace: namespace,
 			//Subsystem: "exporter",
@@ -73,18 +73,18 @@ func metrics_neighbors(e *Exporter) {
 		[]string{"id"},
 	)
 
-	e.iota_neighbors_all_transactions = prometheus.NewGaugeVec(
+	e.iotaNeighborsAllTransactions = prometheus.NewGaugeVec(
 		prometheus.GaugeOpts{
 			//Namespace: namespace,
 			//Subsystem: "exporter",
 			//Name: "neighbors_all_transactions",
 			Name: "iota_neighbors_all_transactions",
-			Help: "Number of All Transaction Types for a specific Neighbor.",
+			Help: "Number of All transaction Types for a specific Neighbor.",
 		},
 		[]string{"id"},
 	)
 
-	e.iota_neighbors_invalid_transactions = prometheus.NewGaugeVec(
+	e.iotaNeighborsInvalidTransactions = prometheus.NewGaugeVec(
 		prometheus.GaugeOpts{
 			//Namespace: namespace,
 			//Subsystem: "exporter",
@@ -95,7 +95,7 @@ func metrics_neighbors(e *Exporter) {
 		[]string{"id"},
 	)
 
-	e.iota_neighbors_sent_transactions = prometheus.NewGaugeVec(
+	e.iotaNeighborsSentTransactions = prometheus.NewGaugeVec(
 		prometheus.GaugeOpts{
 			//Namespace: namespace,
 			//Subsystem: "exporter",
@@ -106,7 +106,7 @@ func metrics_neighbors(e *Exporter) {
 		[]string{"id"},
 	)
 
-	e.iota_neighbors_active = prometheus.NewGaugeVec(
+	e.iotaNeighborsActive = prometheus.NewGaugeVec(
 		prometheus.GaugeOpts{
 			//Namespace: namespace,
 			//Subsystem: "exporter",
@@ -118,49 +118,49 @@ func metrics_neighbors(e *Exporter) {
 	)
 }
 
-func describe_neighbors(e *Exporter, ch chan<- *prometheus.Desc) {
-	ch <- e.iota_neighbors_info_total_neighbors.Desc()
-	ch <- e.iota_neighbors_info_active_neighbors.Desc()
-	e.iota_neighbors_new_transactions.Describe(ch)
-	e.iota_neighbors_random_transactions.Describe(ch)
-	e.iota_neighbors_all_transactions.Describe(ch)
-	e.iota_neighbors_invalid_transactions.Describe(ch)
-	e.iota_neighbors_sent_transactions.Describe(ch)
-	e.iota_neighbors_active.Describe(ch)
+func describeNeighbors(e *exporter, ch chan<- *prometheus.Desc) {
+	ch <- e.iotaNeighborsInfoTotalNeighbors.Desc()
+	ch <- e.iotaNeighborsInfoActiveNeighbors.Desc()
+	e.iotaNeighborsNewTransactions.Describe(ch)
+	e.iotaNeighborsRandomTransactions.Describe(ch)
+	e.iotaNeighborsAllTransactions.Describe(ch)
+	e.iotaNeighborsInvalidTransactions.Describe(ch)
+	e.iotaNeighborsSentTransactions.Describe(ch)
+	e.iotaNeighborsActive.Describe(ch)
 }
 
-func collect_neighbors(e *Exporter, ch chan<- prometheus.Metric) {
-	ch <- e.iota_neighbors_info_total_neighbors
-	ch <- e.iota_neighbors_info_active_neighbors
-	e.iota_neighbors_new_transactions.Collect(ch)
-	e.iota_neighbors_random_transactions.Collect(ch)
-	e.iota_neighbors_all_transactions.Collect(ch)
-	e.iota_neighbors_invalid_transactions.Collect(ch)
-	e.iota_neighbors_sent_transactions.Collect(ch)
-	e.iota_neighbors_active.Collect(ch)
+func collectNeighbors(e *exporter, ch chan<- prometheus.Metric) {
+	ch <- e.iotaNeighborsInfoTotalNeighbors
+	ch <- e.iotaNeighborsInfoActiveNeighbors
+	e.iotaNeighborsNewTransactions.Collect(ch)
+	e.iotaNeighborsRandomTransactions.Collect(ch)
+	e.iotaNeighborsAllTransactions.Collect(ch)
+	e.iotaNeighborsInvalidTransactions.Collect(ch)
+	e.iotaNeighborsSentTransactions.Collect(ch)
+	e.iotaNeighborsActive.Collect(ch)
 }
 
-func scrape_neighbors(e *Exporter, api *giota.API) {
+func scrapeNeighbors(e *exporter, api *giota.API) {
 	// Get getNeighbors metrics
 	resp2, err := api.GetNeighbors()
 
 	if err == nil {
-		neighbor_cnt := len(resp2.Neighbors)
-		e.iota_neighbors_info_total_neighbors.Set(float64(neighbor_cnt))
-		e.iota_neighbors_info_active_neighbors.Set(GetActiveNeighbors(resp2.Neighbors))
-		for n := 1; n < neighbor_cnt; n++ {
+		neighborCount := len(resp2.Neighbors)
+		e.iotaNeighborsInfoTotalNeighbors.Set(float64(neighborCount))
+		e.iotaNeighborsInfoActiveNeighbors.Set(getActiveNeighbors(resp2.Neighbors))
+		for n := 1; n < neighborCount; n++ {
 			address := string(resp2.Neighbors[n].Address)
-			e.iota_neighbors_active.WithLabelValues(address).Set(
-				float64(GetActiveNeighbor(address)))
-			e.iota_neighbors_new_transactions.WithLabelValues(address).Set(
+			e.iotaNeighborsActive.WithLabelValues(address).Set(
+				float64(getActiveNeighbor(address)))
+			e.iotaNeighborsNewTransactions.WithLabelValues(address).Set(
 				float64(resp2.Neighbors[n].NumberOfNewTransactions))
-			e.iota_neighbors_random_transactions.WithLabelValues(address).Set(
+			e.iotaNeighborsRandomTransactions.WithLabelValues(address).Set(
 				float64(resp2.Neighbors[n].NumberOfRandomTransactionRequests))
-			e.iota_neighbors_all_transactions.WithLabelValues(address).Set(
+			e.iotaNeighborsAllTransactions.WithLabelValues(address).Set(
 				float64(resp2.Neighbors[n].NumberOfAllTransactions))
-			e.iota_neighbors_invalid_transactions.WithLabelValues(address).Set(
+			e.iotaNeighborsInvalidTransactions.WithLabelValues(address).Set(
 				float64(resp2.Neighbors[n].NumberOfInvalidTransactions))
-			e.iota_neighbors_sent_transactions.WithLabelValues(address).Set(
+			e.iotaNeighborsSentTransactions.WithLabelValues(address).Set(
 				float64(resp2.Neighbors[n].NumberOfSentTransactions))
 		}
 	} else {

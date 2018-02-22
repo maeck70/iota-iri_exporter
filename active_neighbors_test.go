@@ -4,22 +4,22 @@ import "testing"
 import "github.com/iotaledger/giota"
 
 type neighborTest struct {
-	tx_count int64
-	result   float64
+	transactionCount int64
+	result           float64
 }
 
 func TestActiveNeighbor(t *testing.T) {
 
 	tx := []neighborTest{
-		{tx_count: 100, result: 1},
-		{tx_count: 105, result: 1},
-		{tx_count: 110, result: 1},
-		{tx_count: 115, result: 1},
-		{tx_count: 116, result: 1},
-		{tx_count: 116, result: 1},
-		{tx_count: 116, result: 1},
-		{tx_count: 116, result: 1},
-		{tx_count: 116, result: 0},
+		{transactionCount: 100, result: 1},
+		{transactionCount: 105, result: 1},
+		{transactionCount: 110, result: 1},
+		{transactionCount: 115, result: 1},
+		{transactionCount: 116, result: 1},
+		{transactionCount: 116, result: 1},
+		{transactionCount: 116, result: 1},
+		{transactionCount: 116, result: 1},
+		{transactionCount: 116, result: 0},
 	}
 
 	addr := "foo.com"
@@ -29,13 +29,13 @@ func TestActiveNeighbor(t *testing.T) {
 	for i := range tx {
 		n := giota.Neighbor{
 			Address:                 giota.Address(addr),
-			NumberOfNewTransactions: tx[i].tx_count,
+			NumberOfNewTransactions: tx[i].transactionCount,
 		}
 		neighbormatrix.historyInc()
 		neighbormatrix.register(n)
 
-		a = GetActiveNeighbor(addr)
-		if GetActiveNeighbor(addr) != tx[i].result {
+		a = getActiveNeighbor(addr)
+		if getActiveNeighbor(addr) != tx[i].result {
 			t.Errorf("Expected Neighbor Active (1), got %v", a)
 		}
 	}
@@ -45,15 +45,15 @@ func TestActiveNeighbor(t *testing.T) {
 func TestActiveNeighbors(t *testing.T) {
 
 	tx := []neighborTest{
-		{tx_count: 100, result: 1},
-		{tx_count: 105, result: 1},
-		{tx_count: 110, result: 1},
-		{tx_count: 115, result: 1},
-		{tx_count: 116, result: 1},
-		{tx_count: 116, result: 1},
-		{tx_count: 116, result: 1},
-		{tx_count: 116, result: 1},
-		{tx_count: 116, result: 1},
+		{transactionCount: 100, result: 1},
+		{transactionCount: 105, result: 1},
+		{transactionCount: 110, result: 1},
+		{transactionCount: 115, result: 1},
+		{transactionCount: 116, result: 1},
+		{transactionCount: 116, result: 1},
+		{transactionCount: 116, result: 1},
+		{transactionCount: 116, result: 1},
+		{transactionCount: 116, result: 0},
 	}
 
 	addr := "foo.com"
@@ -62,27 +62,13 @@ func TestActiveNeighbors(t *testing.T) {
 		{Address: giota.Address(addr)},
 	}
 
-	a := float64(0)
+	//a := float64(0)
 
 	for i := range tx {
-		n := giota.Neighbor{
-			Address:                 giota.Address(addr),
-			NumberOfNewTransactions: tx[i].tx_count,
-		}
-
-		if i == 4 {
-			a = GetActiveNeighbors(nl)
-			if a != tx[i].result {
-				t.Errorf("Expected One Active Neighbor, got %v", a)
-			}
-		} else if i == 8 {
-			a = GetActiveNeighbors(nl)
-			if a != tx[i].result {
-				t.Errorf("Expected No Active Neighbors, got %v", a)
-			}
-		} else {
-			neighbormatrix.historyInc()
-			neighbormatrix.register(n)
+		nl[0].NumberOfNewTransactions = tx[i].transactionCount
+		a := getActiveNeighbors(nl)
+		if a != tx[i].result {
+			t.Errorf("Test %v: Expected %v Active Neighbor, got %v", i, tx[i].result, a)
 		}
 	}
 }

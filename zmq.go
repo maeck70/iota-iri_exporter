@@ -33,40 +33,40 @@ import (
 )
 
 // Size of the timeslice buffer, each array row represents one second
-const TIMESLICE_LIMIT = 300
+const TimesliceLimit = 300
 
 type timeslicef struct {
-	tx_any            float64
-	tx_value          float64
-	tx_confirmed      float64
-	tx_toprocess      float64
-	tx_tobroadcast    float64
-	tx_toreply        float64
-	tx_numberstoredtx float64
-	tx_txntorequest   float64
+	txAny            float64
+	txValue          float64
+	txConfirmed      float64
+	txToProcess      float64
+	txToBroadcast    float64
+	txToReply        float64
+	txNumberStoredTx float64
+	txTxnToRequest   float64
 }
 
 type timeslice struct {
-	tx_any            int64
-	tx_value          int64
-	tx_confirmed      int64
-	tx_toprocess      int64
-	tx_tobroadcast    int64
-	tx_toreply        int64
-	tx_numberstoredtx int64
-	tx_txntorequest   int64
+	txAny            int64
+	txValue          int64
+	txConfirmed      int64
+	txToProcess      int64
+	txToBroadcast    int64
+	txToReply        int64
+	txNumberStoredTx int64
+	txTxnToRequest   int64
 }
 
 func (ts *timeslice) reset() {
-	//ts.tx_any = 0
-	ts.tx_value = 0
-	ts.tx_confirmed = 0
-	//ts.tx_toprocess = 0
-	//ts.tx_tobroadcast = 0
-	//ts.tx_toreply = 0
+	//ts.txAny = 0
+	ts.txValue = 0
+	ts.txConfirmed = 0
+	//ts.txToProcess = 0
+	//ts.txToBroadcast = 0
+	//ts.txToReply = 0
 }
 
-type Transaction struct {
+type transaction struct {
 	Hash         string
 	Address      string
 	Value        int64
@@ -97,14 +97,14 @@ type queue struct {
 	NumberOfStoredTxns int64
 }
 
-var tx_total int64
-var timeslice_ptr int
-var timeslice_ptr_prev int
-var timeslice_set [TIMESLICE_LIMIT]timeslice
+var txTotal int64
+var timeslicePtr int
+var timeslicePtrPrev int
+var timesliceSet [TimesliceLimit]timeslice
 
-func metrics_zmq(e *Exporter) {
+func metricsZmq(e *exporter) {
 
-	e.iota_zmq_seen_tx_count = prometheus.NewGauge(
+	e.iotaZmqSeenTxCount = prometheus.NewGauge(
 		prometheus.GaugeOpts{
 			//Namespace: namespace,
 			//Subsystem: "zmq",
@@ -113,7 +113,7 @@ func metrics_zmq(e *Exporter) {
 			Help: "Count of transactions seen by zeroMQ.",
 		})
 
-	e.iota_zmq_txs_with_value_count = prometheus.NewGauge(
+	e.iotaZmqTxsWithValueCount = prometheus.NewGauge(
 		prometheus.GaugeOpts{
 			//Namespace: namespace,
 			//Subsystem: "zmq",
@@ -122,7 +122,7 @@ func metrics_zmq(e *Exporter) {
 			Help: "Count of transactions seen by zeroMQ that have a non-zero value.",
 		})
 
-	e.iota_zmq_confirmed_tx_count = prometheus.NewGauge(
+	e.iotaZmqConfirmedTxCount = prometheus.NewGauge(
 		prometheus.GaugeOpts{
 			//Namespace: namespace,
 			//Subsystem: "zmq",
@@ -131,7 +131,7 @@ func metrics_zmq(e *Exporter) {
 			Help: "Count of transactions confirmed by zeroMQ.",
 		})
 
-	e.iota_zmq_to_process = prometheus.NewGauge(
+	e.iotaZmqToProcess = prometheus.NewGauge(
 		prometheus.GaugeOpts{
 			//Namespace: namespace,
 			//Subsystem: "zmq",
@@ -140,7 +140,7 @@ func metrics_zmq(e *Exporter) {
 			Help: "toProcess from RSTAT output of ZMQ.",
 		})
 
-	e.iota_zmq_to_broadcast = prometheus.NewGauge(
+	e.iotaZmqToBroadcast = prometheus.NewGauge(
 		prometheus.GaugeOpts{
 			//Namespace: namespace,
 			//Subsystem: "zmq",
@@ -149,7 +149,7 @@ func metrics_zmq(e *Exporter) {
 			Help: "toBroadcast from RSTAT output of ZMQ.",
 		})
 
-	e.iota_zmq_to_request = prometheus.NewGauge(
+	e.iotaZmqToRequest = prometheus.NewGauge(
 		prometheus.GaugeOpts{
 			//Namespace: namespace,
 			//Subsystem: "zmq",
@@ -158,7 +158,7 @@ func metrics_zmq(e *Exporter) {
 			Help: "toRequest from RSTAT output of ZMQ.",
 		})
 
-	e.iota_zmq_to_reply = prometheus.NewGauge(
+	e.iotaZmqToReply = prometheus.NewGauge(
 		prometheus.GaugeOpts{
 			//Namespace: namespace,
 			//Subsystem: "zmq",
@@ -167,7 +167,7 @@ func metrics_zmq(e *Exporter) {
 			Help: "toReply from RSTAT output of ZMQ.",
 		})
 
-	e.iota_zmq_total_transactions = prometheus.NewGauge(
+	e.iotaZmqTotalTransactions = prometheus.NewGauge(
 		prometheus.GaugeOpts{
 			//Namespace: namespace,
 			//Subsystem: "zmq",
@@ -177,48 +177,48 @@ func metrics_zmq(e *Exporter) {
 		})
 }
 
-func describe_zmq(e *Exporter, ch chan<- *prometheus.Desc) {
-	ch <- e.iota_zmq_seen_tx_count.Desc()
-	ch <- e.iota_zmq_txs_with_value_count.Desc()
-	ch <- e.iota_zmq_confirmed_tx_count.Desc()
-	ch <- e.iota_zmq_to_process.Desc()
-	ch <- e.iota_zmq_to_broadcast.Desc()
-	ch <- e.iota_zmq_to_request.Desc()
-	ch <- e.iota_zmq_to_reply.Desc()
-	ch <- e.iota_zmq_total_transactions.Desc()
+func describeZmq(e *exporter, ch chan<- *prometheus.Desc) {
+	ch <- e.iotaZmqSeenTxCount.Desc()
+	ch <- e.iotaZmqTxsWithValueCount.Desc()
+	ch <- e.iotaZmqConfirmedTxCount.Desc()
+	ch <- e.iotaZmqToProcess.Desc()
+	ch <- e.iotaZmqToBroadcast.Desc()
+	ch <- e.iotaZmqToRequest.Desc()
+	ch <- e.iotaZmqToReply.Desc()
+	ch <- e.iotaZmqTotalTransactions.Desc()
 }
 
-func collect_zmq(e *Exporter, ch chan<- prometheus.Metric) {
-	ch <- e.iota_zmq_seen_tx_count
-	ch <- e.iota_zmq_txs_with_value_count
-	ch <- e.iota_zmq_confirmed_tx_count
-	ch <- e.iota_zmq_to_process
-	ch <- e.iota_zmq_to_broadcast
-	ch <- e.iota_zmq_to_request
-	ch <- e.iota_zmq_to_reply
-	ch <- e.iota_zmq_total_transactions
+func collectZmq(e *exporter, ch chan<- prometheus.Metric) {
+	ch <- e.iotaZmqSeenTxCount
+	ch <- e.iotaZmqTxsWithValueCount
+	ch <- e.iotaZmqConfirmedTxCount
+	ch <- e.iotaZmqToProcess
+	ch <- e.iotaZmqToBroadcast
+	ch <- e.iotaZmqToRequest
+	ch <- e.iotaZmqToReply
+	ch <- e.iotaZmqTotalTransactions
 }
 
-func scrape_zmq(e *Exporter) {
+func scrapeZmq(e *exporter) {
 	ts := getTimesliceAvg()
-	e.iota_zmq_seen_tx_count.Set(ts.tx_any)
-	e.iota_zmq_txs_with_value_count.Set(ts.tx_value)
-	e.iota_zmq_confirmed_tx_count.Set(ts.tx_confirmed)
-	e.iota_zmq_to_process.Set(ts.tx_toprocess)
-	e.iota_zmq_to_broadcast.Set(ts.tx_tobroadcast)
-	e.iota_zmq_to_request.Set(ts.tx_txntorequest)
-	e.iota_zmq_to_reply.Set(ts.tx_toreply)
-	e.iota_zmq_total_transactions.Set(float64(tx_total))
+	e.iotaZmqSeenTxCount.Set(ts.txAny)
+	e.iotaZmqTxsWithValueCount.Set(ts.txValue)
+	e.iotaZmqConfirmedTxCount.Set(ts.txConfirmed)
+	e.iotaZmqToProcess.Set(ts.txToProcess)
+	e.iotaZmqToBroadcast.Set(ts.txToBroadcast)
+	e.iotaZmqToRequest.Set(ts.txTxnToRequest)
+	e.iotaZmqToReply.Set(ts.txToReply)
+	e.iotaZmqTotalTransactions.Set(float64(txTotal))
 
-	log.Debugf("total tx:          %v", tx_total)
-	log.Debugf("tx_any:            %v tps", ts.tx_any)
-	log.Debugf("tx_value:          %v tx", ts.tx_value)
-	log.Debugf("tx_confirmed:      %v tx", ts.tx_confirmed)
-	log.Debugf("tx_toprocess:      %v tx", int64(ts.tx_toprocess))
-	log.Debugf("tx_tobroadcast:    %v tx", int64(ts.tx_tobroadcast))
-	log.Debugf("tx_toreply:        %v tx", int64(ts.tx_toreply))
-	log.Debugf("tx_numberstoredtx: %v tx", int64(ts.tx_numberstoredtx))
-	log.Debugf("tx_txntorequest:   %v tx", int64(ts.tx_txntorequest))
+	log.Debugf("total tx:          %v", txTotal)
+	log.Debugf("txAny:            %v tps", ts.txAny)
+	log.Debugf("txValue:          %v tx", ts.txValue)
+	log.Debugf("txConfirmed:      %v tx", ts.txConfirmed)
+	log.Debugf("txToProcess:      %v tx", int64(ts.txToProcess))
+	log.Debugf("txToBroadcast:    %v tx", int64(ts.txToBroadcast))
+	log.Debugf("txToReply:        %v tx", int64(ts.txToReply))
+	log.Debugf("txNumberStoredTx: %v tx", int64(ts.txNumberStoredTx))
+	log.Debugf("txTxnToRequest:   %v tx", int64(ts.txTxnToRequest))
 
 }
 
@@ -241,10 +241,10 @@ func collectTimeslice(address *string) {
 		parts := strings.Fields(msg)
 		switch parts[0] {
 
-		//Transaction
+		//transaction
 		case "tx":
-			tx_total++
-			txn := Transaction{
+			txTotal++
+			txn := transaction{
 				Hash:         parts[1],
 				Address:      parts[2],
 				Value:        stoi(parts[3]),
@@ -257,14 +257,14 @@ func collectTimeslice(address *string) {
 				Branch:       parts[10],
 				ArrivalDate:  parts[11],
 			}
-			timeslice_set[timeslice_ptr].tx_any++
+			timesliceSet[timeslicePtr].txAny++
 			if txn.Value != 0 {
-				timeslice_set[timeslice_ptr].tx_value++
+				timesliceSet[timeslicePtr].txValue++
 			}
 
-		// Transaction confirmed
+		// transaction confirmed
 		case "sn":
-			timeslice_set[timeslice_ptr].tx_any++
+			timesliceSet[timeslicePtr].txAny++
 			/*				stat := sn{
 								Index:       parts[1],
 								Hash:        parts[2],
@@ -273,7 +273,7 @@ func collectTimeslice(address *string) {
 								Branch:      parts[5],
 								Bundle:      parts[6],
 							}
-			*/timeslice_set[timeslice_ptr].tx_confirmed++
+			*/timesliceSet[timeslicePtr].txConfirmed++
 
 		case "rstat":
 			stat := queue{
@@ -284,40 +284,40 @@ func collectTimeslice(address *string) {
 				NumberOfStoredTxns: stoi(parts[5]),
 			}
 			// Note that these are total counts, no need to increment into the timeslice
-			timeslice_set[timeslice_ptr].tx_toprocess = stat.ReceiveQueueSize
-			timeslice_set[timeslice_ptr].tx_tobroadcast = stat.BroadcastQueueSize
-			timeslice_set[timeslice_ptr].tx_toreply = stat.ReplyQueueSize
-			timeslice_set[timeslice_ptr].tx_numberstoredtx = stat.NumberOfStoredTxns
-			timeslice_set[timeslice_ptr].tx_txntorequest = stat.TxnToRequest
+			timesliceSet[timeslicePtr].txToProcess = stat.ReceiveQueueSize
+			timesliceSet[timeslicePtr].txToBroadcast = stat.BroadcastQueueSize
+			timesliceSet[timeslicePtr].txToReply = stat.ReplyQueueSize
+			timesliceSet[timeslicePtr].txNumberStoredTx = stat.NumberOfStoredTxns
+			timesliceSet[timeslicePtr].txTxnToRequest = stat.TxnToRequest
 		}
 	}
 }
 
 func advanceTimeslice() {
 	// Advance to the next row in the timeslice array, rotate to 0 if final row is passed
-	timeslice_ptr_new := timeslice_ptr
-	timeslice_ptr_new++
-	if timeslice_ptr_new == TIMESLICE_LIMIT {
-		timeslice_ptr_new = 0
+	timeslicePtrNew := timeslicePtr
+	timeslicePtrNew++
+	if timeslicePtrNew == TimesliceLimit {
+		timeslicePtrNew = 0
 	}
 
-	timeslice_set[timeslice_ptr_new].reset()
+	timesliceSet[timeslicePtrNew].reset()
 
 	// Copy the rstat metricsto the next slice
-	timeslice_set[timeslice_ptr_new].tx_any = timeslice_set[timeslice_ptr].tx_any
-	timeslice_set[timeslice_ptr_new].tx_toprocess = timeslice_set[timeslice_ptr].tx_toprocess
-	timeslice_set[timeslice_ptr_new].tx_tobroadcast = timeslice_set[timeslice_ptr].tx_tobroadcast
-	timeslice_set[timeslice_ptr_new].tx_toreply = timeslice_set[timeslice_ptr].tx_toreply
-	timeslice_set[timeslice_ptr_new].tx_numberstoredtx = timeslice_set[timeslice_ptr].tx_numberstoredtx
-	timeslice_set[timeslice_ptr_new].tx_txntorequest = timeslice_set[timeslice_ptr].tx_txntorequest
+	timesliceSet[timeslicePtrNew].txAny = timesliceSet[timeslicePtr].txAny
+	timesliceSet[timeslicePtrNew].txToProcess = timesliceSet[timeslicePtr].txToProcess
+	timesliceSet[timeslicePtrNew].txToBroadcast = timesliceSet[timeslicePtr].txToBroadcast
+	timesliceSet[timeslicePtrNew].txToReply = timesliceSet[timeslicePtr].txToReply
+	timesliceSet[timeslicePtrNew].txNumberStoredTx = timesliceSet[timeslicePtr].txNumberStoredTx
+	timesliceSet[timeslicePtrNew].txTxnToRequest = timesliceSet[timeslicePtr].txTxnToRequest
 
 	// Activate the new slice
-	timeslice_ptr = timeslice_ptr_new
+	timeslicePtr = timeslicePtrNew
 }
 
 func manageTimeslice(address *string) {
-	timeslice_ptr_prev = 0
-	timeslice_ptr = 0
+	timeslicePtrPrev = 0
+	timeslicePtr = 0
 
 	// Start collector concurrently
 	go collectTimeslice(address)
@@ -332,54 +332,54 @@ func manageTimeslice(address *string) {
 func getTimesliceAvg() timeslicef {
 
 	// Define the start of the time slice we are averaging on
-	timeslice_ptr_avg := timeslice_ptr - 1
-	if timeslice_ptr_avg == -1 {
+	timeslicePtrAvg := timeslicePtr - 1
+	if timeslicePtrAvg == -1 {
 
-		timeslice_ptr_avg = TIMESLICE_LIMIT - 1
+		timeslicePtrAvg = TimesliceLimit - 1
 	}
 
-	timeslice_avg := timeslicef{}
-	timeslice_cnt := float64(0)
+	timesliceAvg := timeslicef{}
+	timesliceCnt := float64(0)
 
 	// Accumulate the transactions that happened in the timeslice
-	for ts := timeslice_ptr_prev; ts != timeslice_ptr_avg; ts++ {
-		if ts == TIMESLICE_LIMIT {
-			if timeslice_ptr_avg == 0 {
+	for ts := timeslicePtrPrev; ts != timeslicePtrAvg; ts++ {
+		if ts == TimesliceLimit {
+			if timeslicePtrAvg == 0 {
 				// Exception condition where we need to stop the loop
 				break
 			}
 			ts = 0
 		}
-		timeslice_avg.tx_any += float64(timeslice_set[ts].tx_any)
-		timeslice_avg.tx_value += float64(timeslice_set[ts].tx_value)
-		timeslice_avg.tx_confirmed += float64(timeslice_set[ts].tx_confirmed)
-		timeslice_avg.tx_toprocess = float64(timeslice_set[ts].tx_toprocess)
-		timeslice_avg.tx_tobroadcast = float64(timeslice_set[ts].tx_tobroadcast)
-		timeslice_avg.tx_toreply = float64(timeslice_set[ts].tx_toreply)
-		timeslice_avg.tx_numberstoredtx = float64(timeslice_set[ts].tx_numberstoredtx)
-		timeslice_avg.tx_txntorequest = float64(timeslice_set[ts].tx_txntorequest)
-		timeslice_cnt++
+		timesliceAvg.txAny += float64(timesliceSet[ts].txAny)
+		timesliceAvg.txValue += float64(timesliceSet[ts].txValue)
+		timesliceAvg.txConfirmed += float64(timesliceSet[ts].txConfirmed)
+		timesliceAvg.txToProcess = float64(timesliceSet[ts].txToProcess)
+		timesliceAvg.txToBroadcast = float64(timesliceSet[ts].txToBroadcast)
+		timesliceAvg.txToReply = float64(timesliceSet[ts].txToReply)
+		timesliceAvg.txNumberStoredTx = float64(timesliceSet[ts].txNumberStoredTx)
+		timesliceAvg.txTxnToRequest = float64(timesliceSet[ts].txTxnToRequest)
+		timesliceCnt++
 	}
 
 	// Calculate the average of the timeslice
-	if timeslice_cnt > 1 {
-		//timeslice_avg.tx_any = timeslice_avg.tx_any / timeslice_cnt
-		timeslice_avg.tx_value = timeslice_avg.tx_value / timeslice_cnt
-		timeslice_avg.tx_confirmed = timeslice_avg.tx_confirmed / timeslice_cnt
-		//timeslice_avg.tx_toprocess = timeslice_avg.tx_toprocess / timeslice_cnt
-		//timeslice_avg.tx_tobroadcast = timeslice_avg.tx_tobroadcast / timeslice_cnt
-		//timeslice_avg.tx_toreply = timeslice_avg.tx_toreply / timeslice_cnt
-		//timeslice_avg.tx_numberstoredtx = timeslice_avg.tx_numberstoredtx / timeslice_cnt
-		//timeslice_avg.tx_txntorequest = timeslice_avg.tx_txntorequest / timeslice_cnt
+	if timesliceCnt > 1 {
+		//timesliceAvg.txAny = timesliceAvg.txAny / timesliceCnt
+		timesliceAvg.txValue = timesliceAvg.txValue / timesliceCnt
+		timesliceAvg.txConfirmed = timesliceAvg.txConfirmed / timesliceCnt
+		//timesliceAvg.txToProcess = timesliceAvg.txToProcess / timesliceCnt
+		//timesliceAvg.txToBroadcast = timesliceAvg.txToBroadcast / timesliceCnt
+		//timesliceAvg.txToReply = timesliceAvg.txToReply / timesliceCnt
+		//timesliceAvg.txNumberStoredTx = timesliceAvg.txNumberStoredTx / timesliceCnt
+		//timesliceAvg.txTxnToRequest = timesliceAvg.txTxnToRequest / timesliceCnt
 	}
 
 	// Maintain where we left off for the next call to this function
-	timeslice_ptr_prev = timeslice_ptr_avg
+	timeslicePtrPrev = timeslicePtrAvg
 
-	return timeslice_avg
+	return timesliceAvg
 }
 
-func init_zmq(address *string) {
+func initZmq(address *string) {
 
 	go manageTimeslice(address)
 

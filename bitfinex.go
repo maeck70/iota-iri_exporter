@@ -34,17 +34,17 @@ import (
 )
 
 type tradingPair struct {
-	symbol            string
-	bid               float64
-	bid_size          float64
-	ask               float64
-	ask_size          float64
-	daily_change      float64
-	daily_change_perc float64
-	last_price        float64
-	volume            float64
-	high              float64
-	low               float64
+	symbol                string
+	bid                   float64
+	bidSize               float64
+	ask                   float64
+	askSize               float64
+	dailyChange           float64
+	dailyChangePercentage float64
+	lastPrice             float64
+	volume                float64
+	high                  float64
+	low                   float64
 }
 
 var tradingPairList = []string{
@@ -56,10 +56,10 @@ var tradingPairList = []string{
 	"tBTCEUR",
 	"tETHUSD"}
 
-var bitfinex_url = "https://api.bitfinex.com/v2/tickers?symbols="
+var bitfinexURL = "https://api.bitfinex.com/v2/tickers?symbols="
 
-func metrics_bitfinex(e *Exporter) {
-	e.iota_market_trade_price = prometheus.NewGaugeVec(
+func metricsBitfinex(e *exporter) {
+	e.iotaMarketTradePrice = prometheus.NewGaugeVec(
 		prometheus.GaugeOpts{
 			//Namespace: namespace,
 			//Subsystem: "exporter",
@@ -70,7 +70,7 @@ func metrics_bitfinex(e *Exporter) {
 		[]string{"pair"},
 	)
 
-	e.iota_market_trade_volume = prometheus.NewGaugeVec(
+	e.iotaMarketTradeVolume = prometheus.NewGaugeVec(
 		prometheus.GaugeOpts{
 			//Namespace: namespace,
 			//Subsystem: "exporter",
@@ -81,7 +81,7 @@ func metrics_bitfinex(e *Exporter) {
 		[]string{"pair"},
 	)
 
-	e.iota_market_high_price = prometheus.NewGaugeVec(
+	e.iotaMarketHighPrice = prometheus.NewGaugeVec(
 		prometheus.GaugeOpts{
 			//Namespace: namespace,
 			//Subsystem: "exporter",
@@ -92,7 +92,7 @@ func metrics_bitfinex(e *Exporter) {
 		[]string{"pair"},
 	)
 
-	e.iota_market_low_price = prometheus.NewGaugeVec(
+	e.iotaMarketLowPrice = prometheus.NewGaugeVec(
 		prometheus.GaugeOpts{
 			//Namespace: namespace,
 			//Subsystem: "exporter",
@@ -104,33 +104,33 @@ func metrics_bitfinex(e *Exporter) {
 	)
 }
 
-func describe_bitfinex(e *Exporter, ch chan<- *prometheus.Desc) {
-	e.iota_market_trade_price.Describe(ch)
-	e.iota_market_trade_volume.Describe(ch)
-	e.iota_market_high_price.Describe(ch)
-	e.iota_market_low_price.Describe(ch)
+func describeBitfinex(e *exporter, ch chan<- *prometheus.Desc) {
+	e.iotaMarketTradePrice.Describe(ch)
+	e.iotaMarketTradeVolume.Describe(ch)
+	e.iotaMarketHighPrice.Describe(ch)
+	e.iotaMarketLowPrice.Describe(ch)
 }
 
-func collect_bitfinex(e *Exporter, ch chan<- prometheus.Metric) {
-	e.iota_market_trade_price.Collect(ch)
-	e.iota_market_trade_volume.Collect(ch)
-	e.iota_market_high_price.Collect(ch)
-	e.iota_market_low_price.Collect(ch)
+func collectBitfinex(e *exporter, ch chan<- prometheus.Metric) {
+	e.iotaMarketTradePrice.Collect(ch)
+	e.iotaMarketTradeVolume.Collect(ch)
+	e.iotaMarketHighPrice.Collect(ch)
+	e.iotaMarketLowPrice.Collect(ch)
 }
 
 func init() {
 	// Expand the Bitfinex URL with the list of trading pairs
 	for t := range tradingPairList {
-		bitfinex_url += tradingPairList[t]
+		bitfinexURL += tradingPairList[t]
 		if t < len(tradingPairList)-1 {
-			bitfinex_url += ","
+			bitfinexURL += ","
 		}
 	}
 }
 
-func scrape_bitfinex(e *Exporter) {
+func scrapeBitfinex(e *exporter) {
 	// Get Bitfinex metrics
-	req, err := http.NewRequest("GET", bitfinex_url, nil)
+	req, err := http.NewRequest("GET", bitfinexURL, nil)
 	resp, _ := http.DefaultClient.Do(req)
 
 	if err == nil {
@@ -152,20 +152,20 @@ func scrape_bitfinex(e *Exporter) {
 			tp.symbol = strings.TrimLeft(tp.symbol, "t")
 
 			/*		tp.bid, _ = strconv.ParseFloat(s2[1], 64)
-					tp.bid_size, _ = strconv.ParseFloat(s2[2], 64)
+					tp.bidSize, _ = strconv.ParseFloat(s2[2], 64)
 					tp.ask, _ = strconv.ParseFloat(s2[3], 64)
-					tp.ask_size, _ = strconv.ParseFloat(s2[4], 64)
-					tp.daily_change, _ = strconv.ParseFloat(s2[5], 64)
-					tp.daily_change_perc, _ = strconv.ParseFloat(s2[6], 64)
-			*/tp.last_price, _ = strconv.ParseFloat(s2[7], 64)
+					tp.askSize, _ = strconv.ParseFloat(s2[4], 64)
+					tp.dailyChange, _ = strconv.ParseFloat(s2[5], 64)
+					tp.dailyChangePercentage, _ = strconv.ParseFloat(s2[6], 64)
+			*/tp.lastPrice, _ = strconv.ParseFloat(s2[7], 64)
 			tp.volume, _ = strconv.ParseFloat(s2[8], 64)
 			tp.high, _ = strconv.ParseFloat(s2[9], 64)
 			tp.low, _ = strconv.ParseFloat(s2[10], 64)
 
-			e.iota_market_trade_price.WithLabelValues(tp.symbol).Set(tp.last_price)
-			e.iota_market_trade_volume.WithLabelValues(tp.symbol).Set(tp.volume)
-			e.iota_market_high_price.WithLabelValues(tp.symbol).Set(tp.high)
-			e.iota_market_low_price.WithLabelValues(tp.symbol).Set(tp.low)
+			e.iotaMarketTradePrice.WithLabelValues(tp.symbol).Set(tp.lastPrice)
+			e.iotaMarketTradeVolume.WithLabelValues(tp.symbol).Set(tp.volume)
+			e.iotaMarketHighPrice.WithLabelValues(tp.symbol).Set(tp.high)
+			e.iotaMarketLowPrice.WithLabelValues(tp.symbol).Set(tp.low)
 		}
 	} else {
 		log.Info(err)
