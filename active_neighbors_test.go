@@ -25,7 +25,7 @@ SOFTWARE.
 package main
 
 import "testing"
-import "github.com/iotaledger/giota"
+import "github.com/maeck70/giota"
 
 type neighborTest struct {
 	transactionCount int64
