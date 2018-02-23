@@ -1,7 +1,7 @@
 language: go
 go:
-  - 1.8.x
-  - 1.9.x
+  #- 1.8.x
+  #- 1.9.x
   - release
 
 stages:
@@ -30,11 +30,11 @@ jobs:
     - stage: deploy 
       script: 
         - GOOS=linux GOARCH=amd64 go build -ldflags="-s -w" -v -o iota-iri_exporter-$TRAVIS_TAG-linux-arm64
-        #- GOOS=linux GOARCH=arm64 go build -ldflags="-s -w" -v -o iota-iri_exporter-$TRAVIS_TAG-linux-arm64
+        - GOOS=linux GOARCH=arm64 go build -ldflags="-s -w" -v -o iota-iri_exporter-$TRAVIS_TAG-linux-arm64
         #- GOOS=darwin GOARCH=amd64 go build -ldflags="-s -w" -v -o tt-$TRAVIS_TAG-darwin64
         #- GOOS=windows GOARCH=amd64 go build -ldflags="-s -w" -v -o tt-$TRAVIS_TAG-win64.exe
         - md5sum iota-iri_exporter-$TRAVIS_TAG-linux-amd64
-        #- md5sum iota-iri_exporter-$TRAVIS_TAG-linux-arm64
+        - md5sum iota-iri_exporter-$TRAVIS_TAG-linux-arm64
         #- md5sum tt-$TRAVIS_TAG-darwin64
         #- md5sum tt-$TRAVIS_TAG-win64.exe
       deploy:
@@ -42,7 +42,7 @@ jobs:
         api_key: $GITHUB_OAUTH_TOKEN
         file:
           - iota-iri_exporter-$TRAVIS_TAG-linux-amd64
-          #- iota-iri_exporter-$TRAVIS_TAG-linux-arm64
+          - iota-iri_exporter-$TRAVIS_TAG-linux-arm64
           #- tt-$TRAVIS_TAG-darwin64
           #- tt-$TRAVIS_TAG-win64.exe
         skip_cleanup: true
