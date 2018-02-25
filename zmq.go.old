@@ -29,10 +29,13 @@ import (
 	"github.com/prometheus/client_golang/prometheus"
 	"github.com/prometheus/common/log"
 	"strings"
+	"time"
 )
 
-type zmqAccumsf struct {
-	txTotal	         float64
+// Size of the timeslice buffer, each array row represents one second
+const TimesliceLimit = 300
+
+type timeslicef struct {
 	txAny            float64
 	txValue          float64
 	txConfirmed      float64
@@ -41,6 +44,26 @@ type zmqAccumsf struct {
 	txToReply        float64
 	txNumberStoredTx float64
 	txTxnToRequest   float64
+}
+
+type timeslice struct {
+	txAny            int64
+	txValue          int64
+	txConfirmed      int64
+	txToProcess      int64
+	txToBroadcast    int64
+	txToReply        int64
+	txNumberStoredTx int64
+	txTxnToRequest   int64
+}
+
+func (ts *timeslice) reset() {
+	//ts.txAny = 0
+	ts.txValue = 0
+	ts.txConfirmed = 0
+	//ts.txToProcess = 0
+	//ts.txToBroadcast = 0
+	//ts.txToReply = 0
 }
 
 type transaction struct {
@@ -74,8 +97,10 @@ type queue struct {
 	NumberOfStoredTxns int64
 }
 
-
-var zmqAccums zmqAccumsf
+var txTotal int64
+var timeslicePtr int
+var timeslicePtrPrev int
+var timesliceSet [TimesliceLimit]timeslice
 
 func metricsZmq(e *exporter) {
 
@@ -153,7 +178,6 @@ func metricsZmq(e *exporter) {
 }
 
 func describeZmq(e *exporter, ch chan<- *prometheus.Desc) {
-
 	ch <- e.iotaZmqSeenTxCount.Desc()
 	ch <- e.iotaZmqTxsWithValueCount.Desc()
 	ch <- e.iotaZmqConfirmedTxCount.Desc()
@@ -165,7 +189,6 @@ func describeZmq(e *exporter, ch chan<- *prometheus.Desc) {
 }
 
 func collectZmq(e *exporter, ch chan<- prometheus.Metric) {
-
 	ch <- e.iotaZmqSeenTxCount
 	ch <- e.iotaZmqTxsWithValueCount
 	ch <- e.iotaZmqConfirmedTxCount
@@ -177,28 +200,29 @@ func collectZmq(e *exporter, ch chan<- prometheus.Metric) {
 }
 
 func scrapeZmq(e *exporter) {
+	ts := getTimesliceAvg()
+	e.iotaZmqSeenTxCount.Set(ts.txAny)
+	e.iotaZmqTxsWithValueCount.Set(ts.txValue)
+	e.iotaZmqConfirmedTxCount.Set(ts.txConfirmed)
+	e.iotaZmqToProcess.Set(ts.txToProcess)
+	e.iotaZmqToBroadcast.Set(ts.txToBroadcast)
+	e.iotaZmqToRequest.Set(ts.txTxnToRequest)
+	e.iotaZmqToReply.Set(ts.txToReply)
+	e.iotaZmqTotalTransactions.Set(float64(txTotal))
 
-	e.iotaZmqSeenTxCount.Set(zmqAccums.txAny)
-	e.iotaZmqTxsWithValueCount.Set(zmqAccums.txValue)
-	e.iotaZmqConfirmedTxCount.Set(zmqAccums.txConfirmed)
-	e.iotaZmqToProcess.Set(zmqAccums.txToProcess)
-	e.iotaZmqToBroadcast.Set(zmqAccums.txToBroadcast)
-	e.iotaZmqToRequest.Set(zmqAccums.txTxnToRequest)
-	e.iotaZmqToReply.Set(zmqAccums.txToReply)
-	e.iotaZmqTotalTransactions.Set(zmqAccums.txTotal)
+	log.Debugf("total tx:          %v", txTotal)
+	log.Debugf("txAny:            %v tps", ts.txAny)
+	log.Debugf("txValue:          %v tx", ts.txValue)
+	log.Debugf("txConfirmed:      %v tx", ts.txConfirmed)
+	log.Debugf("txToProcess:      %v tx", int64(ts.txToProcess))
+	log.Debugf("txToBroadcast:    %v tx", int64(ts.txToBroadcast))
+	log.Debugf("txToReply:        %v tx", int64(ts.txToReply))
+	log.Debugf("txNumberStoredTx: %v tx", int64(ts.txNumberStoredTx))
+	log.Debugf("txTxnToRequest:   %v tx", int64(ts.txTxnToRequest))
 
-	log.Debugf("total tx:         %v tx", int64(zmqAccums.txTotal))
-	log.Debugf("txAny:            %v tx", int64(zmqAccums.txAny))
-	log.Debugf("txValue:          %v tx", int64(zmqAccums.txValue))
-	log.Debugf("txConfirmed:      %v tx", int64(zmqAccums.txConfirmed))
-	log.Debugf("txToProcess:      %v tx", int64(zmqAccums.txToProcess))
-	log.Debugf("txToBroadcast:    %v tx", int64(zmqAccums.txToBroadcast))
-	log.Debugf("txToReply:        %v tx", int64(zmqAccums.txToReply))
-	log.Debugf("txNumberStoredTx: %v tx", int64(zmqAccums.txNumberStoredTx))
-	log.Debugf("txTxnToRequest:   %v tx", int64(zmqAccums.txTxnToRequest))
 }
 
-func collectZmqAccums(address *string) {
+func collectTimeslice(address *string) {
 
 	socket, err := zmq4.NewSocket(zmq4.SUB)
 	must(err)
@@ -219,7 +243,7 @@ func collectZmqAccums(address *string) {
 
 		// Transaction
 		case "tx":
-			zmqAccums.txTotal++
+			txTotal++
 			txn := transaction{
 				Hash:         parts[1],
 				Address:      parts[2],
@@ -233,9 +257,9 @@ func collectZmqAccums(address *string) {
 				Branch:       parts[10],
 				ArrivalDate:  parts[11],
 			}
-			zmqAccums.txAny++
+			timesliceSet[timeslicePtr].txAny++
 			if txn.Value != 0 {
-				zmqAccums.txValue++
+				timesliceSet[timeslicePtr].txValue++
 				log.Debug("ZMQ Tx with value msg received.")
 			} else {
 				log.Debug("ZMQ Tx with zero value msg received.")
@@ -243,7 +267,7 @@ func collectZmqAccums(address *string) {
 
 		// Confirmed Transaction
 		case "sn":
-			zmqAccums.txAny++
+			timesliceSet[timeslicePtr].txAny++
 			/*				stat := sn{
 								Index:       parts[1],
 								Hash:        parts[2],
@@ -252,7 +276,7 @@ func collectZmqAccums(address *string) {
 								Branch:      parts[5],
 								Bundle:      parts[6],
 							}*/
-			zmqAccums.txConfirmed++
+			timesliceSet[timeslicePtr].txConfirmed++
 			log.Debug("ZMQ Confirmed Tx msg received.")
 
 		// RStat message (overall statistics)
@@ -266,20 +290,100 @@ func collectZmqAccums(address *string) {
 			}
 
 			// Note that these are total counts, no need to increment into the timeslice
-			zmqAccums.txToProcess = float64(stat.ReceiveQueueSize)
-			zmqAccums.txToBroadcast = float64(stat.BroadcastQueueSize)
-			zmqAccums.txToReply = float64(stat.ReplyQueueSize)
-			zmqAccums.txNumberStoredTx = float64(stat.NumberOfStoredTxns)
-			zmqAccums.txTxnToRequest = float64(stat.TxnToRequest)
+			timesliceSet[timeslicePtr].txToProcess = stat.ReceiveQueueSize
+			timesliceSet[timeslicePtr].txToBroadcast = stat.BroadcastQueueSize
+			timesliceSet[timeslicePtr].txToReply = stat.ReplyQueueSize
+			timesliceSet[timeslicePtr].txNumberStoredTx = stat.NumberOfStoredTxns
+			timesliceSet[timeslicePtr].txTxnToRequest = stat.TxnToRequest
 
 			log.Debug("ZMQ RStat msg received.")
 		}
 	}
 }
 
+func advanceTimeslice() {
+	// Advance to the next row in the timeslice array, rotate to 0 if final row is passed
+	timeslicePtrNew := timeslicePtr
+	timeslicePtrNew++
+	if timeslicePtrNew == TimesliceLimit {
+		timeslicePtrNew = 0
+	}
+
+	timesliceSet[timeslicePtrNew].reset()
+
+	// Copy the rstat metricsto the next slice
+	timesliceSet[timeslicePtrNew].txAny = timesliceSet[timeslicePtr].txAny
+	timesliceSet[timeslicePtrNew].txToProcess = timesliceSet[timeslicePtr].txToProcess
+	timesliceSet[timeslicePtrNew].txToBroadcast = timesliceSet[timeslicePtr].txToBroadcast
+	timesliceSet[timeslicePtrNew].txToReply = timesliceSet[timeslicePtr].txToReply
+	timesliceSet[timeslicePtrNew].txNumberStoredTx = timesliceSet[timeslicePtr].txNumberStoredTx
+	timesliceSet[timeslicePtrNew].txTxnToRequest = timesliceSet[timeslicePtr].txTxnToRequest
+
+	// Activate the new slice
+	timeslicePtr = timeslicePtrNew
+}
+
+func manageTimeslice(address *string) {
+	timeslicePtrPrev = 0
+	timeslicePtr = 0
+
+	// Start collector concurrently
+	go collectTimeslice(address)
+
+	// Rotate the timeslice array pointer every second
+	for {
+		time.Sleep(time.Duration(1) * time.Second)
+		advanceTimeslice()
+	}
+}
+
+func getTimesliceAvg() timeslicef {
+
+	// Define the start of the time slice we are averaging on
+	timeslicePtrAvg := timeslicePtr - 1
+	if timeslicePtrAvg == -1 {
+
+		timeslicePtrAvg = TimesliceLimit - 1
+	}
+
+	timesliceAvg := timeslicef{}
+	timesliceCnt := float64(0)
+
+	// Accumulate the transactions that happened in the timeslice
+	for ts := timeslicePtrPrev; ts != timeslicePtrAvg; ts++ {
+		if ts == TimesliceLimit {
+			if timeslicePtrAvg == 0 {
+				// Exception condition where we need to stop the loop
+				break
+			}
+			ts = 0
+		}
+		timesliceAvg.txAny += float64(timesliceSet[ts].txAny)
+		timesliceAvg.txValue += float64(timesliceSet[ts].txValue)
+		timesliceAvg.txConfirmed += float64(timesliceSet[ts].txConfirmed)
+		timesliceAvg.txToProcess = float64(timesliceSet[ts].txToProcess)
+		timesliceAvg.txToBroadcast = float64(timesliceSet[ts].txToBroadcast)
+		timesliceAvg.txToReply = float64(timesliceSet[ts].txToReply)
+		timesliceAvg.txNumberStoredTx = float64(timesliceSet[ts].txNumberStoredTx)
+		timesliceAvg.txTxnToRequest = float64(timesliceSet[ts].txTxnToRequest)
+		timesliceCnt++
+	}
+
+	// Calculate the average of the timeslice
+	if timesliceCnt > 1 {
+		timesliceAvg.txValue = timesliceAvg.txValue / timesliceCnt
+		timesliceAvg.txConfirmed = timesliceAvg.txConfirmed / timesliceCnt
+	}
+
+	// Maintain where we left off for the next call to this function
+	timeslicePtrPrev = timeslicePtrAvg
+
+	return timesliceAvg
+}
+
 func initZmq(address *string) {
 	major, minor, patch := zmq4.Version()
 	log.Infof("ZMQ version is %d.%d.%d", major, minor, patch)
 
-	go collectZmqAccums(address)
+	go manageTimeslice(address)
 }

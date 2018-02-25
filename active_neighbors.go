@@ -27,7 +27,7 @@ package main
 import (
 	"crypto/sha1"
 	"fmt"
-	"github.com/maeck/giota"
+	"github.com/iotaledger/giota"
 	"github.com/prometheus/common/log"
 )
 

@@ -25,7 +25,7 @@ SOFTWARE.
 package main
 
 import (
-	"github.com/maeck70/giota"
+	"github.com/iotaledger/giota"
 	"github.com/prometheus/client_golang/prometheus"
 	"github.com/prometheus/common/log"
 )
