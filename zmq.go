@@ -263,6 +263,7 @@ func collectZmqAccums(address *string) {
 			// RStat message (overall statistics)
 			case "rstat":
 				rstatLastSeen = time.Now()
+
 				stat := queue{
 					ReceiveQueueSize:   stoi(parts[1]),
 					BroadcastQueueSize: stoi(parts[2]),
@@ -280,6 +281,8 @@ func collectZmqAccums(address *string) {
 
 				log.Debug("ZMQ RStat msg received.")
 			}
+
+			// Check if the ZMQ socket has been unresponsive 
 			if time.Since(rstatLastSeen) > timeoutInterval {
 				socket.Disconnect(*address)
 				log.Warn("No ZMQ RStat msg received, reconnecting to zmq socket.")
