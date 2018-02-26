@@ -29,6 +29,7 @@ import (
 	"github.com/prometheus/client_golang/prometheus"
 	"github.com/prometheus/common/log"
 	"strings"
+	"time"
 )
 
 type zmqAccumsf struct {
@@ -199,79 +200,91 @@ func scrapeZmq(e *exporter) {
 
 func collectZmqAccums(address *string) {
 
-	socket, err := zmq4.NewSocket(zmq4.SUB)
-	must(err)
-	socket.SetSubscribe("") // TODO: Listen to only tx, sn, rstat
-
-	err = socket.Connect(*address)
-	must(err)
-
-	log.Infof("Connected to IRI at address %s.", *address)
+	timeoutInterval := (30 * time.Second)
 
 	for {
 
-		msg, err := socket.Recv(0)
+		socket, err := zmq4.NewSocket(zmq4.SUB)
+		must(err)
+		socket.SetSubscribe("") // TODO: Listen to only tx, sn, rstat
+
+		err = socket.Connect(*address)
 		must(err)
 
-		parts := strings.Fields(msg)
-		switch parts[0] {
+		log.Infof("Connected to IRI at address %s.", *address)
+		rstatLastSeen := time.Now()
 
-		// Transaction
-		case "tx":
-			zmqAccums.txTotal++
-			txn := transaction{
-				Hash:         parts[1],
-				Address:      parts[2],
-				Value:        stoi(parts[3]),
-				Tag:          parts[4],
-				Timestamp:    parts[5],
-				CurrentIndex: parts[6],
-				LastIndex:    parts[7],
-				Bundle:       parts[8],
-				Trunk:        parts[9],
-				Branch:       parts[10],
-				ArrivalDate:  parts[11],
+		for {
+
+			msg, err := socket.Recv(0)
+			must(err)
+
+			parts := strings.Fields(msg)
+			switch parts[0] {
+
+			// Transaction
+			case "tx":
+				zmqAccums.txTotal++
+				txn := transaction{
+					Hash:         parts[1],
+					Address:      parts[2],
+					Value:        stoi(parts[3]),
+					Tag:          parts[4],
+					Timestamp:    parts[5],
+					CurrentIndex: parts[6],
+					LastIndex:    parts[7],
+					Bundle:       parts[8],
+					Trunk:        parts[9],
+					Branch:       parts[10],
+					ArrivalDate:  parts[11],
+				}
+				zmqAccums.txAny++
+				if txn.Value != 0 {
+					zmqAccums.txValue++
+					log.Debug("ZMQ Tx with value msg received.")
+				} else {
+					log.Debug("ZMQ Tx with zero value msg received.")
+				}
+
+			// Confirmed Transaction
+			case "sn":
+				zmqAccums.txAny++
+				/*				stat := sn{
+								Index:       parts[1],
+								Hash:        parts[2],
+								AddressHash: parts[3],
+								Trunk:       parts[4],
+								Branch:      parts[5],
+								Bundle:      parts[6],
+							}*/
+				zmqAccums.txConfirmed++
+				log.Debug("ZMQ Confirmed Tx msg received.")
+
+			// RStat message (overall statistics)
+			case "rstat":
+				rstatLastSeen = time.Now()
+				stat := queue{
+					ReceiveQueueSize:   stoi(parts[1]),
+					BroadcastQueueSize: stoi(parts[2]),
+					TxnToRequest:       stoi(parts[3]),
+					ReplyQueueSize:     stoi(parts[4]),
+					NumberOfStoredTxns: stoi(parts[5]),
+				}
+
+				// Note that these are total counts, no need to increment into the timeslice
+				zmqAccums.txToProcess = float64(stat.ReceiveQueueSize)
+				zmqAccums.txToBroadcast = float64(stat.BroadcastQueueSize)
+				zmqAccums.txToReply = float64(stat.ReplyQueueSize)
+				zmqAccums.txNumberStoredTx = float64(stat.NumberOfStoredTxns)
+				zmqAccums.txTxnToRequest = float64(stat.TxnToRequest)
+
+				log.Debug("ZMQ RStat msg received.")
 			}
-			zmqAccums.txAny++
-			if txn.Value != 0 {
-				zmqAccums.txValue++
-				log.Debug("ZMQ Tx with value msg received.")
-			} else {
-				log.Debug("ZMQ Tx with zero value msg received.")
+			if time.Since(rstatLastSeen) > timeoutInterval {
+				socket.Disconnect(*address)
+				log.Warn("No ZMQ RStat msg received, reconnecting to zmq socket.")
+				break
 			}
-
-		// Confirmed Transaction
-		case "sn":
-			zmqAccums.txAny++
-			/*				stat := sn{
-							Index:       parts[1],
-							Hash:        parts[2],
-							AddressHash: parts[3],
-							Trunk:       parts[4],
-							Branch:      parts[5],
-							Bundle:      parts[6],
-						}*/
-			zmqAccums.txConfirmed++
-			log.Debug("ZMQ Confirmed Tx msg received.")
-
-		// RStat message (overall statistics)
-		case "rstat":
-			stat := queue{
-				ReceiveQueueSize:   stoi(parts[1]),
-				BroadcastQueueSize: stoi(parts[2]),
-				TxnToRequest:       stoi(parts[3]),
-				ReplyQueueSize:     stoi(parts[4]),
-				NumberOfStoredTxns: stoi(parts[5]),
-			}
-
-			// Note that these are total counts, no need to increment into the timeslice
-			zmqAccums.txToProcess = float64(stat.ReceiveQueueSize)
-			zmqAccums.txToBroadcast = float64(stat.BroadcastQueueSize)
-			zmqAccums.txToReply = float64(stat.ReplyQueueSize)
-			zmqAccums.txNumberStoredTx = float64(stat.NumberOfStoredTxns)
-			zmqAccums.txTxnToRequest = float64(stat.TxnToRequest)
-
-			log.Debug("ZMQ RStat msg received.")
 		}
 	}
 }
