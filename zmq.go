@@ -32,7 +32,7 @@ import (
 )
 
 type zmqAccumsf struct {
-	txTotal	         float64
+	txTotal          float64
 	txAny            float64
 	txValue          float64
 	txConfirmed      float64
@@ -73,7 +73,6 @@ type queue struct {
 	ReplyQueueSize     int64
 	NumberOfStoredTxns int64
 }
-
 
 var zmqAccums zmqAccumsf
 
@@ -245,13 +244,13 @@ func collectZmqAccums(address *string) {
 		case "sn":
 			zmqAccums.txAny++
 			/*				stat := sn{
-								Index:       parts[1],
-								Hash:        parts[2],
-								AddressHash: parts[3],
-								Trunk:       parts[4],
-								Branch:      parts[5],
-								Bundle:      parts[6],
-							}*/
+							Index:       parts[1],
+							Hash:        parts[2],
+							AddressHash: parts[3],
+							Trunk:       parts[4],
+							Branch:      parts[5],
+							Bundle:      parts[6],
+						}*/
 			zmqAccums.txConfirmed++
 			log.Debug("ZMQ Confirmed Tx msg received.")
 
