@@ -28,8 +28,10 @@ import (
 	"github.com/pebbe/zmq4"
 	"github.com/prometheus/client_golang/prometheus"
 	"github.com/prometheus/common/log"
+	"github.com/dgraph-io/badger"
 	"strings"
 	"time"
+	"fmt"
 )
 
 type zmqAccumsf struct {
@@ -200,7 +202,7 @@ func scrapeZmq(e *exporter) {
 
 func collectZmqAccums(address *string) {
 
-	timeoutInterval := (30 * time.Second)
+	//timeoutInterval := 30 * time.Second
 
 	for {
 
@@ -212,20 +214,50 @@ func collectZmqAccums(address *string) {
 		must(err)
 
 		log.Infof("Connected to IRI at address %s.", *address)
-		rstatLastSeen := time.Now()
+		//zmqLastSeen := time.Now()
+
+		opts := badger.DefaultOptions
+		opts.Dir = "./iotabadgerdb"
+		opts.ValueDir = "./iotabadgerdb"
+		db, err := badger.Open(opts)
+		if err != nil {
+			log.Fatal(err)
+		}
+		defer db.Close()
+
+		go badgerDBCleanup(db)
+
+		err = socket.SetRcvtimeo(10 * time.Second)
+		must(err)
 
 		for {
 
 			msg, err := socket.Recv(0)
-			must(err)
+			if err == zmq4.ETIMEDOUT {
+				log.Info("No ZMQ RStat msg received, reconnecting to zmq socket.")
+				break
+
+/*				log.Infof("time since last = %d > %d", time.Since(zmqLastSeen), timeoutInterval)
+
+				// Check if the ZMQ socket has been unresponsive 
+				if time.Since(zmqLastSeen) > timeoutInterval {
+					socket.Disconnect(*address)
+					log.Info("No ZMQ RStat msg received, reconnecting to zmq socket.")
+					break
+				}
+				time.Sleep(1 * time.Second)
+*/			} else if err != nil {
+				panic(err)
+			}
 
 			parts := strings.Fields(msg)
 			switch parts[0] {
 
 			// Transaction
 			case "tx":
+				//zmqLastSeen = time.Now()
 				zmqAccums.txTotal++
-				txn := transaction{
+				tx := transaction{
 					Hash:         parts[1],
 					Address:      parts[2],
 					Value:        stoi(parts[3]),
@@ -239,31 +271,36 @@ func collectZmqAccums(address *string) {
 					ArrivalDate:  parts[11],
 				}
 				zmqAccums.txAny++
-				if txn.Value != 0 {
+
+				if tx.Value != 0 {
 					zmqAccums.txValue++
 					log.Debug("ZMQ Tx with value msg received.")
+					processValueTx(db, &tx)
+
 				} else {
-					log.Debug("ZMQ Tx with zero value msg received.")
+					//log.Debug("ZMQ Tx with zero value msg received.")
 				}
 
 			// Confirmed Transaction
 			case "sn":
+				//zmqLastSeen = time.Now()
 				zmqAccums.txAny++
-				/*				stat := sn{
-								Index:       parts[1],
-								Hash:        parts[2],
-								AddressHash: parts[3],
-								Trunk:       parts[4],
-								Branch:      parts[5],
-								Bundle:      parts[6],
-							}*/
+				sn := sn{
+					Index:       parts[1],
+					Hash:        parts[2],
+					AddressHash: parts[3],
+					Trunk:       parts[4],
+					Branch:      parts[5],
+					Bundle:      parts[6],
+				}
 				zmqAccums.txConfirmed++
 				log.Debug("ZMQ Confirmed Tx msg received.")
+				go processConfirmedTx(db, &sn)
+
 
 			// RStat message (overall statistics)
 			case "rstat":
-				rstatLastSeen = time.Now()
-
+				//zmqLastSeen = time.Now()
 				stat := queue{
 					ReceiveQueueSize:   stoi(parts[1]),
 					BroadcastQueueSize: stoi(parts[2]),
@@ -281,14 +318,49 @@ func collectZmqAccums(address *string) {
 
 				log.Debug("ZMQ RStat msg received.")
 			}
-
-			// Check if the ZMQ socket has been unresponsive 
-			if time.Since(rstatLastSeen) > timeoutInterval {
-				socket.Disconnect(*address)
-				log.Warn("No ZMQ RStat msg received, reconnecting to zmq socket.")
-				break
-			}
 		}
+	}
+}
+
+func processValueTx(db *badger.DB, tx *transaction) {
+	err := db.Update(func(txn *badger.Txn) error {
+		key := fmt.Sprintf("%s", tx.Hash)
+		val := fmt.Sprintf("{'timestamp':'%v', 'address':'%v', value:'%d'}", tx.Timestamp, tx.Address, tx.Value)
+		log.Debugf("BadgerDB write: key(%s) value(%s)", key, val)
+		err := txn.SetWithTTL([]byte(key), []byte(val), 15 * 24 * time.Hour)
+
+		return err
+	})
+	if err != nil {
+		log.Infof("BadgerDB error %v.", err)
+	}
+}
+
+func processConfirmedTx(db *badger.DB, tx *sn) {
+	err := db.Update(func(txn *badger.Txn) error {
+		key := fmt.Sprintf("%s", tx.Hash)
+		val, err := txn.Get([]byte(key))
+		if err == badger.ErrKeyNotFound {
+			log.Debugf("BadgerDB get: key(%s) value(%s)", key, val)
+		} else {
+			log.Debugf("BadgerDB get: Key(%s) not found", key)
+		}
+
+		return err
+	})
+	if err != nil {
+		log.Infof("BadgerDB error %v.", err)
+	} 
+}
+
+func badgerDBCleanup(db *badger.DB) {
+
+	// Cleanup every 15 minutes
+	for {
+		time.Sleep(15 * time.Minute)
+		db.PurgeOlderVersions()
+		db.RunValueLogGC(0.5)
+		log.Info("BadgerDB purge.")
 	}
 }
 
@@ -298,3 +370,4 @@ func initZmq(address *string) {
 
 	go collectZmqAccums(address)
 }
+

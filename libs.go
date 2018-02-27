@@ -62,3 +62,7 @@ func must(err error) {
 		panic(err)
 	}
 }
+
+func BytesToString(data []byte) string {
+	return string(data[:])
+}
