@@ -214,7 +214,6 @@ func collectZmqAccums(address *string) {
 		must(err)
 
 		log.Infof("Connected to IRI at address %s.", *address)
-		//zmqLastSeen := time.Now()
 
 		opts := badger.DefaultOptions
 		opts.Dir = "./iotabadgerdb"
@@ -227,6 +226,7 @@ func collectZmqAccums(address *string) {
 
 		go badgerDBCleanup(db)
 
+		// Set ZMQ no received messages time-out
 		err = socket.SetRcvtimeo(10 * time.Second)
 		must(err)
 
@@ -236,17 +236,7 @@ func collectZmqAccums(address *string) {
 			if err == zmq4.ETIMEDOUT {
 				log.Info("No ZMQ RStat msg received, reconnecting to zmq socket.")
 				break
-
-/*				log.Infof("time since last = %d > %d", time.Since(zmqLastSeen), timeoutInterval)
-
-				// Check if the ZMQ socket has been unresponsive 
-				if time.Since(zmqLastSeen) > timeoutInterval {
-					socket.Disconnect(*address)
-					log.Info("No ZMQ RStat msg received, reconnecting to zmq socket.")
-					break
-				}
-				time.Sleep(1 * time.Second)
-*/			} else if err != nil {
+			} else if err != nil {
 				panic(err)
 			}
 
@@ -255,7 +245,6 @@ func collectZmqAccums(address *string) {
 
 			// Transaction
 			case "tx":
-				//zmqLastSeen = time.Now()
 				zmqAccums.txTotal++
 				tx := transaction{
 					Hash:         parts[1],
@@ -283,7 +272,6 @@ func collectZmqAccums(address *string) {
 
 			// Confirmed Transaction
 			case "sn":
-				//zmqLastSeen = time.Now()
 				zmqAccums.txAny++
 				sn := sn{
 					Index:       parts[1],
@@ -300,7 +288,6 @@ func collectZmqAccums(address *string) {
 
 			// RStat message (overall statistics)
 			case "rstat":
-				//zmqLastSeen = time.Now()
 				stat := queue{
 					ReceiveQueueSize:   stoi(parts[1]),
 					BroadcastQueueSize: stoi(parts[2]),
@@ -349,7 +336,9 @@ func processConfirmedTx(db *badger.DB, tx *sn) {
 		return err
 	})
 	if err != nil {
-		log.Infof("BadgerDB error %v.", err)
+		if err != badger.ErrKeyNotFound {
+			log.Infof("BadgerDB error %v.", err)
+		}
 	} 
 }
 
