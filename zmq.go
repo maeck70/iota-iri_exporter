@@ -232,7 +232,6 @@ func scrapeZmq(e *exporter) {
 	e.iotaZmqTotalTransactions.Set(zmqAccums.txTotal)
 
 	for i := range zmqConfirmationSet {
-		log.Infof("zmqConfirmationSet[%d] = [%s] %v", i, zmqConfirmationSet[i].label, zmqConfirmationSet[i].duration)
 		e.iotaZmqConfirmationHisto.WithLabelValues(zmqConfirmationSet[i].label).Observe(zmqConfirmationSet[i].duration)
 	}
 	zmqConfirmationSet = nil
@@ -375,7 +374,7 @@ func processValueTx(db *badger.DB, tx *transaction) {
 		}
 
 		val, err := json.Marshal(rec)
-		//log.Debugf("BadgerDB write: key(%s) value(%s)", key, val)
+		log.Debugf("BadgerDB write: key(%s) value(%s)", key, val)
 		err = txn.SetWithTTL([]byte(key), val, recttl)
 
 		return err
@@ -399,8 +398,6 @@ func processConfirmedTx(db *badger.DB, tx *sn) {
 
 			rec := txRecord{}
 			json.Unmarshal(v, &rec)
-
-			log.Infof("rec: %v.", rec)
 
 			rec.TxConfirmed = stoi(time.Now().UTC().Format("20060102150405"))
 			v, _ = json.Marshal(rec)
