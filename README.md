@@ -17,7 +17,7 @@ It is my goal of this project to provide the same functionality as iota-prom-exp
 	- [x] Pull getNodeInfo metrics.
 	- [x] Pull getNeighbor metrics.
 	- [x] Collect and Expose IRI ZMQ Metrics. 	
-  - [x] Collect and Expose Transaction Confirmation Rate (duration) Metrics.   
+  	- [x] Collect and Expose Transaction Confirmation Rate (duration) Metrics.   
 	- [x] Bitfinex: Export market prices for popular crypto.
 
 With the option to remove specific metrics groups, federation of node monitoring should become more logical and efficient.  
