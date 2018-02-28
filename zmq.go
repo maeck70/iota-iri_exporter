@@ -399,48 +399,6 @@ func processConfirmedTx(db *badger.DB, tx *sn) {
 			rec := txRecord{}
 			json.Unmarshal(v, &rec)
 
-			rec.TxConfirmed = stoi(time.Now().UTC().Format("20060102150405"))
-			v, _ = json.Marshal(rec)
-			err = txn.SetWithTTL([]byte(key), v, recttl)
-			c := zmqConfirmation{label: getTxLabel(rec.TxValue), duration: float64(rec.TxConfirmed - rec.TxIn)}
-			zmqConfirmationSet = append(zmqConfirmationSet, c)
-
-		} else {
-			log.Debugf("BadgerDB get: Key(%s) not found", key)
-		}
-		return err
-	})
-	if err != nil {
-		if err != badger.ErrKeyNotFound {
-			log.Infof("BadgerDB error %v.", err)
-		}
-
-		val, err := json.Marshal(rec)
-		//log.Debugf("BadgerDB write: key(%s) value(%s)", key, val)
-		err = txn.SetWithTTL([]byte(key), val, recttl)
-
-		return err
-	})
-	if err != nil {
-		log.Infof("BadgerDB error %v.", err)
-	}
-}
-
-func processConfirmedTx(db *badger.DB, tx *sn) {
-
-	recttl := 24 * time.Hour // 1 Day
-	err := db.Update(func(txn *badger.Txn) error {
-		key := fmt.Sprintf("%s", tx.Hash)
-		val, err := txn.Get([]byte(key))
-
-		if err != badger.ErrKeyNotFound {
-
-			v, _ := val.Value()
-			log.Debugf("BadgerDB get: key(%s) value(%s)", key, v)
-
-			rec := txRecord{}
-			json.Unmarshal(v, &rec)
-
 			log.Infof("rec: %v.", rec)
 
 			rec.TxConfirmed = stoi(time.Now().UTC().Format("20060102150405"))
@@ -458,17 +416,6 @@ func processConfirmedTx(db *badger.DB, tx *sn) {
 		if err != badger.ErrKeyNotFound {
 			log.Infof("BadgerDB error %v.", err)
 		}
-	}
-}
-
-func badgerDBCleanup(db *badger.DB) {
-
-	// Cleanup every 15 minutes
-	for {
-		time.Sleep(15 * time.Minute)
-		db.PurgeOlderVersions()
-		db.RunValueLogGC(0.5)
-		log.Info("BadgerDB purge.")
 	}
 }
 
