@@ -156,8 +156,8 @@ func scrapeBitfinex(e *exporter) {
 					tp.ask, _ = strconv.ParseFloat(s2[3], 64)
 					tp.askSize, _ = strconv.ParseFloat(s2[4], 64)
 					tp.dailyChange, _ = strconv.ParseFloat(s2[5], 64)
-					tp.dailyChangePercentage, _ = strconv.ParseFloat(s2[6], 64)
-			*/tp.lastPrice, _ = strconv.ParseFloat(s2[7], 64)
+					tp.dailyChangePercentage, _ = strconv.ParseFloat(s2[6], 64)*/
+			tp.lastPrice, _ = strconv.ParseFloat(s2[7], 64)
 			tp.volume, _ = strconv.ParseFloat(s2[8], 64)
 			tp.high, _ = strconv.ParseFloat(s2[9], 64)
 			tp.low, _ = strconv.ParseFloat(s2[10], 64)

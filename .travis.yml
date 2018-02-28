@@ -28,8 +28,9 @@ jobs:
         - golint -set_exit_status $(go list ./...) # one last linter
     - stage: deploy 
       script: 
-        - GOOS=linux GOARCH=amd64 go build -ldflags="-s -w" -v -o iota-iri_exporter-$TRAVIS_TAG-linux-amd64
-        #- CC=arm-linux-gnueabihf-gcc GOOS=linux GOARCH=arm GOARM=8 CGO_ENABLED=1 go build -ldflags="-extld=$CC" -v -o iota-iri_exporter-$TRAVIS_TAG-linux-arm64
+        #- GOOS=linux GOARCH=amd64 go build -ldflags="-s -w" -v -o iota-iri_exporter-$TRAVIS_TAG-linux-amd64
+        - CGO_ENABLED=1 GOOS=linux GOARCH=amd64 go build -a -tags netgo -ldflags '-w -extldflags "-static"' iota-iri_exporter-$TRAVIS_TAG-linux-amd64
+        #- CGO_ENABLED=1 GOOS=linux GOARCH=arm64 go build -a -tags netgo -ldflags '-w -extldflags "-static"' iota-iri_exporter-$TRAVIS_TAG-linux-arm64
         #- GOOS=darwin GOARCH=amd64 go build -ldflags="-s -w" -v -o tt-$TRAVIS_TAG-darwin64
         #- GOOS=windows GOARCH=amd64 go build -ldflags="-s -w" -v -o tt-$TRAVIS_TAG-win64.exe
         - md5sum iota-iri_exporter-$TRAVIS_TAG-linux-amd64

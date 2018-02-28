@@ -37,13 +37,14 @@ import (
 
 // Version is set during build to the git Describe version
 // (semantic version)-(commitish) form.
-var Version = "0.3.7"
+var Version = "0.4.2"
 
 var (
 	listenAddress    = kingpin.Flag("web.listen-address", "Address to listen on for web interface and telemetry.").Default(":9311").String()
 	metricPath       = kingpin.Flag("web.telemetry-path", "Path under which to expose metrics.").Default("/metrics").String()
 	targetAddress    = kingpin.Flag("web.iri-path", "URI of the IOTA IRI Node to scrape.").Default("http://localhost:14265").String()
 	targetZmqAddress = kingpin.Flag("web.zmq-path", "URI of the IOTA IRI ZMQ Node to scrape.").Default("tcp://localhost:5556").String()
+	databasePath     = kingpin.Flag("db.database-path", "Path for the database.").Default("./iotabadgerdb").String()
 )
 
 const (
@@ -72,7 +73,7 @@ type exporter struct {
 	iotaNeighborsInvalidTransactions     *prometheus.GaugeVec
 	iotaNeighborsSentTransactions        *prometheus.GaugeVec
 	iotaNeighborsActive                  *prometheus.GaugeVec
-	iotaZmqSeenTxCount                   prometheus.Gauge
+	iotaZmqSeenTxCount                   *prometheus.GaugeVec
 	iotaZmqTxsWithValueCount             prometheus.Gauge
 	iotaZmqConfirmedTxCount              prometheus.Gauge
 	iotaZmqToRequest                     prometheus.Gauge
@@ -80,6 +81,7 @@ type exporter struct {
 	iotaZmqToBroadcast                   prometheus.Gauge
 	iotaZmqToReply                       prometheus.Gauge
 	iotaZmqTotalTransactions             prometheus.Gauge
+	iotaZmqConfirmationHisto             *prometheus.HistogramVec
 	iotaMarketTradePrice                 *prometheus.GaugeVec
 	iotaMarketTradeVolume                *prometheus.GaugeVec
 	iotaMarketHighPrice                  *prometheus.GaugeVec

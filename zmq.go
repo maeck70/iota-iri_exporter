@@ -25,6 +25,9 @@ SOFTWARE.
 package main
 
 import (
+	"encoding/json"
+	"fmt"
+	"github.com/dgraph-io/badger"
 	"github.com/pebbe/zmq4"
 	"github.com/prometheus/client_golang/prometheus"
 	"github.com/prometheus/common/log"
@@ -34,7 +37,8 @@ import (
 
 type zmqAccumsf struct {
 	txTotal          float64
-	txAny            float64
+	txAnyZero        float64
+	txAnyNotZero     float64
 	txValue          float64
 	txConfirmed      float64
 	txToProcess      float64
@@ -75,18 +79,42 @@ type queue struct {
 	NumberOfStoredTxns int64
 }
 
+type txRecord struct {
+	Timestamp   int64
+	TxIn        int64
+	TxConfirmed int64
+	TxAddress   string
+	TxValue     int64
+}
+
+type zmqConfirmation struct {
+	label    string
+	duration float64
+}
+
 var zmqAccums zmqAccumsf
+var zmqConfirmationSet []zmqConfirmation
+
+func getTxLabel(c int64) string {
+	label := "0"
+	if c != 0 {
+		label = "<> 0"
+	}
+	return label
+}
 
 func metricsZmq(e *exporter) {
 
-	e.iotaZmqSeenTxCount = prometheus.NewGauge(
+	e.iotaZmqSeenTxCount = prometheus.NewGaugeVec(
 		prometheus.GaugeOpts{
 			//Namespace: namespace,
 			//Subsystem: "zmq",
 			//Name: "zmq_seen_tx_count",
 			Name: "iota_zmq_seen_tx_count",
 			Help: "Count of transactions seen by zeroMQ.",
-		})
+		},
+		[]string{"hasValue"},
+	)
 
 	e.iotaZmqTxsWithValueCount = prometheus.NewGauge(
 		prometheus.GaugeOpts{
@@ -150,11 +178,24 @@ func metricsZmq(e *exporter) {
 			Name: "iota_zmq_total_transactions",
 			Help: "totalTransactions from RSTAT output of ZMQ.",
 		})
+
+	e.iotaZmqConfirmationHisto = prometheus.NewHistogramVec(
+		prometheus.HistogramOpts{
+			//Namespace: namespace,
+			//Subsystem: "zmq",
+			//Name: "zmq_total_transactions",
+			Name:    "iota_zmq_tx_confirm_time",
+			Help:    "Actual seconds it takes to confirm each tx.",
+			Buckets: []float64{300, 600, 1200, 2400, 3600, 7200, 21600, 43200},
+		},
+		[]string{"hasValue"},
+	)
+
 }
 
 func describeZmq(e *exporter, ch chan<- *prometheus.Desc) {
 
-	ch <- e.iotaZmqSeenTxCount.Desc()
+	e.iotaZmqSeenTxCount.Describe(ch)
 	ch <- e.iotaZmqTxsWithValueCount.Desc()
 	ch <- e.iotaZmqConfirmedTxCount.Desc()
 	ch <- e.iotaZmqToProcess.Desc()
@@ -162,11 +203,12 @@ func describeZmq(e *exporter, ch chan<- *prometheus.Desc) {
 	ch <- e.iotaZmqToRequest.Desc()
 	ch <- e.iotaZmqToReply.Desc()
 	ch <- e.iotaZmqTotalTransactions.Desc()
+	e.iotaZmqConfirmationHisto.Describe(ch)
 }
 
 func collectZmq(e *exporter, ch chan<- prometheus.Metric) {
 
-	ch <- e.iotaZmqSeenTxCount
+	e.iotaZmqSeenTxCount.Collect(ch)
 	ch <- e.iotaZmqTxsWithValueCount
 	ch <- e.iotaZmqConfirmedTxCount
 	ch <- e.iotaZmqToProcess
@@ -174,11 +216,13 @@ func collectZmq(e *exporter, ch chan<- prometheus.Metric) {
 	ch <- e.iotaZmqToRequest
 	ch <- e.iotaZmqToReply
 	ch <- e.iotaZmqTotalTransactions
+	e.iotaZmqConfirmationHisto.Collect(ch)
 }
 
 func scrapeZmq(e *exporter) {
 
-	e.iotaZmqSeenTxCount.Set(zmqAccums.txAny)
+	e.iotaZmqSeenTxCount.WithLabelValues("<> 0").Set(zmqAccums.txAnyNotZero)
+	e.iotaZmqSeenTxCount.WithLabelValues("0").Set(zmqAccums.txAnyZero)
 	e.iotaZmqTxsWithValueCount.Set(zmqAccums.txValue)
 	e.iotaZmqConfirmedTxCount.Set(zmqAccums.txConfirmed)
 	e.iotaZmqToProcess.Set(zmqAccums.txToProcess)
@@ -187,8 +231,15 @@ func scrapeZmq(e *exporter) {
 	e.iotaZmqToReply.Set(zmqAccums.txToReply)
 	e.iotaZmqTotalTransactions.Set(zmqAccums.txTotal)
 
+	for i := range zmqConfirmationSet {
+		log.Infof("zmqConfirmationSet[%d] = [%s] %v", i, zmqConfirmationSet[i].label, zmqConfirmationSet[i].duration)
+		e.iotaZmqConfirmationHisto.WithLabelValues(zmqConfirmationSet[i].label).Observe(zmqConfirmationSet[i].duration)
+	}
+	zmqConfirmationSet = nil
+
 	log.Debugf("total tx:         %v tx", int64(zmqAccums.txTotal))
-	log.Debugf("txAny:            %v tx", int64(zmqAccums.txAny))
+	log.Debugf("txAnyZero:        %v tx", int64(zmqAccums.txAnyZero))
+	log.Debugf("txAnyNotZero:     %v tx", int64(zmqAccums.txAnyNotZero))
 	log.Debugf("txValue:          %v tx", int64(zmqAccums.txValue))
 	log.Debugf("txConfirmed:      %v tx", int64(zmqAccums.txConfirmed))
 	log.Debugf("txToProcess:      %v tx", int64(zmqAccums.txToProcess))
@@ -196,28 +247,50 @@ func scrapeZmq(e *exporter) {
 	log.Debugf("txToReply:        %v tx", int64(zmqAccums.txToReply))
 	log.Debugf("txNumberStoredTx: %v tx", int64(zmqAccums.txNumberStoredTx))
 	log.Debugf("txTxnToRequest:   %v tx", int64(zmqAccums.txTxnToRequest))
+
 }
 
 func collectZmqAccums(address *string) {
-
-	timeoutInterval := (30 * time.Second)
 
 	for {
 
 		socket, err := zmq4.NewSocket(zmq4.SUB)
 		must(err)
-		socket.SetSubscribe("") // TODO: Listen to only tx, sn, rstat
+
+		for _, topic := range []string{"tx", "sn", "rstat"} {
+			err = socket.SetSubscribe(topic)
+			must(err)
+		}
+
+		// Set ZMQ no received messages time-out
+		err = socket.SetRcvtimeo(10 * time.Second)
+		must(err)
 
 		err = socket.Connect(*address)
 		must(err)
 
 		log.Infof("Connected to IRI at address %s.", *address)
-		rstatLastSeen := time.Now()
+
+		opts := badger.DefaultOptions
+		opts.Dir = *databasePath
+		opts.ValueDir = *databasePath
+		db, err := badger.Open(opts)
+		if err != nil {
+			log.Fatal(err)
+		}
+		defer db.Close()
+
+		go badgerDBCleanup(db)
 
 		for {
 
 			msg, err := socket.Recv(0)
-			must(err)
+			if err == zmq4.ETIMEDOUT {
+				log.Info("No ZMQ RStat msg received, reconnecting to zmq socket.")
+				break
+			} else if err != nil {
+				panic(err)
+			}
 
 			parts := strings.Fields(msg)
 			switch parts[0] {
@@ -225,7 +298,7 @@ func collectZmqAccums(address *string) {
 			// Transaction
 			case "tx":
 				zmqAccums.txTotal++
-				txn := transaction{
+				tx := transaction{
 					Hash:         parts[1],
 					Address:      parts[2],
 					Value:        stoi(parts[3]),
@@ -238,32 +311,33 @@ func collectZmqAccums(address *string) {
 					Branch:       parts[10],
 					ArrivalDate:  parts[11],
 				}
-				zmqAccums.txAny++
-				if txn.Value != 0 {
+
+				processValueTx(db, &tx)
+				if tx.Value != 0 {
+					zmqAccums.txAnyNotZero++
 					zmqAccums.txValue++
 					log.Debug("ZMQ Tx with value msg received.")
 				} else {
-					log.Debug("ZMQ Tx with zero value msg received.")
+					zmqAccums.txAnyZero++
+					//log.Debug("ZMQ Tx with zero value msg received.")
 				}
 
 			// Confirmed Transaction
 			case "sn":
-				zmqAccums.txAny++
-				/*				stat := sn{
-								Index:       parts[1],
-								Hash:        parts[2],
-								AddressHash: parts[3],
-								Trunk:       parts[4],
-								Branch:      parts[5],
-								Bundle:      parts[6],
-							}*/
+				sn := sn{
+					Index:       parts[1],
+					Hash:        parts[2],
+					AddressHash: parts[3],
+					Trunk:       parts[4],
+					Branch:      parts[5],
+					Bundle:      parts[6],
+				}
 				zmqAccums.txConfirmed++
 				log.Debug("ZMQ Confirmed Tx msg received.")
+				go processConfirmedTx(db, &sn)
 
 			// RStat message (overall statistics)
 			case "rstat":
-				rstatLastSeen = time.Now()
-
 				stat := queue{
 					ReceiveQueueSize:   stoi(parts[1]),
 					BroadcastQueueSize: stoi(parts[2]),
@@ -281,14 +355,79 @@ func collectZmqAccums(address *string) {
 
 				log.Debug("ZMQ RStat msg received.")
 			}
-
-			// Check if the ZMQ socket has been unresponsive 
-			if time.Since(rstatLastSeen) > timeoutInterval {
-				socket.Disconnect(*address)
-				log.Warn("No ZMQ RStat msg received, reconnecting to zmq socket.")
-				break
-			}
 		}
+	}
+}
+
+func processValueTx(db *badger.DB, tx *transaction) {
+
+	recttl := 15 * 24 * time.Hour // 15 Days
+	err := db.Update(func(txn *badger.Txn) error {
+
+		key := fmt.Sprintf("%s", tx.Hash)
+
+		rec := txRecord{
+			Timestamp:   stoi(tx.Timestamp),
+			TxIn:        stoi(time.Now().UTC().Format("20060102150405")),
+			TxConfirmed: 0,
+			TxAddress:   tx.Address,
+			TxValue:     tx.Value,
+		}
+
+		val, err := json.Marshal(rec)
+		//log.Debugf("BadgerDB write: key(%s) value(%s)", key, val)
+		err = txn.SetWithTTL([]byte(key), val, recttl)
+
+		return err
+	})
+	if err != nil {
+		log.Infof("BadgerDB error %v.", err)
+	}
+}
+
+func processConfirmedTx(db *badger.DB, tx *sn) {
+
+	recttl := 24 * time.Hour // 1 Day
+	err := db.Update(func(txn *badger.Txn) error {
+		key := fmt.Sprintf("%s", tx.Hash)
+		val, err := txn.Get([]byte(key))
+
+		if err != badger.ErrKeyNotFound {
+
+			v, _ := val.Value()
+			log.Debugf("BadgerDB get: key(%s) value(%s)", key, v)
+
+			rec := txRecord{}
+			json.Unmarshal(v, &rec)
+
+			log.Infof("rec: %v.", rec)
+
+			rec.TxConfirmed = stoi(time.Now().UTC().Format("20060102150405"))
+			v, _ = json.Marshal(rec)
+			err = txn.SetWithTTL([]byte(key), v, recttl)
+			c := zmqConfirmation{label: getTxLabel(rec.TxValue), duration: float64(rec.TxConfirmed - rec.TxIn)}
+			zmqConfirmationSet = append(zmqConfirmationSet, c)
+
+		} else {
+			log.Debugf("BadgerDB get: Key(%s) not found", key)
+		}
+		return err
+	})
+	if err != nil {
+		if err != badger.ErrKeyNotFound {
+			log.Infof("BadgerDB error %v.", err)
+		}
+	}
+}
+
+func badgerDBCleanup(db *badger.DB) {
+
+	// Cleanup every 15 minutes
+	for {
+		time.Sleep(15 * time.Minute)
+		db.PurgeOlderVersions()
+		db.RunValueLogGC(0.5)
+		log.Info("BadgerDB purge.")
 	}
 }
 
