@@ -25,14 +25,14 @@ SOFTWARE.
 package main
 
 import (
+	"encoding/json"
+	"fmt"
+	"github.com/dgraph-io/badger"
 	"github.com/pebbe/zmq4"
 	"github.com/prometheus/client_golang/prometheus"
 	"github.com/prometheus/common/log"
-	"github.com/dgraph-io/badger"
-	"encoding/json"
 	"strings"
 	"time"
-	"fmt"
 )
 
 type zmqAccumsf struct {
@@ -80,16 +80,16 @@ type queue struct {
 }
 
 type txRecord struct {
-	Timestamp          int64
-	TxIn               int64
-	TxConfirmed        int64
-	TxAddress		   string
-	TxValue            int64
+	Timestamp   int64
+	TxIn        int64
+	TxConfirmed int64
+	TxAddress   string
+	TxValue     int64
 }
 
 type zmqConfirmation struct {
-	label              string
-	duration           float64
+	label    string
+	duration float64
 }
 
 var zmqAccums zmqAccumsf
@@ -184,9 +184,9 @@ func metricsZmq(e *exporter) {
 			//Namespace: namespace,
 			//Subsystem: "zmq",
 			//Name: "zmq_total_transactions",
-			Name: "iota_zmq_tx_confirm_time",
-			Help: "Actual seconds it takes to confirm each tx.",
-        	Buckets: []float64{300, 600, 1200, 2400, 3600, 7200, 21600, 43200},
+			Name:    "iota_zmq_tx_confirm_time",
+			Help:    "Actual seconds it takes to confirm each tx.",
+			Buckets: []float64{300, 600, 1200, 2400, 3600, 7200, 21600, 43200},
 		},
 		[]string{"hasValue"},
 	)
@@ -231,7 +231,7 @@ func scrapeZmq(e *exporter) {
 	e.iotaZmqToReply.Set(zmqAccums.txToReply)
 	e.iotaZmqTotalTransactions.Set(zmqAccums.txTotal)
 
-	for i := range(zmqConfirmationSet) {
+	for i := range zmqConfirmationSet {
 		log.Infof("zmqConfirmationSet[%d] = [%s] %v", i, zmqConfirmationSet[i].label, zmqConfirmationSet[i].duration)
 		e.iotaZmqConfirmationHisto.WithLabelValues(zmqConfirmationSet[i].label).Observe(zmqConfirmationSet[i].duration)
 	}
@@ -256,10 +256,10 @@ func collectZmqAccums(address *string) {
 
 		socket, err := zmq4.NewSocket(zmq4.SUB)
 		must(err)
-		
+
 		for _, topic := range []string{"tx", "sn", "rstat"} {
-        	err = socket.SetSubscribe(topic)
-			must(err)    	
+			err = socket.SetSubscribe(topic)
+			must(err)
 		}
 
 		// Set ZMQ no received messages time-out
@@ -336,7 +336,6 @@ func collectZmqAccums(address *string) {
 				log.Debug("ZMQ Confirmed Tx msg received.")
 				go processConfirmedTx(db, &sn)
 
-
 			// RStat message (overall statistics)
 			case "rstat":
 				stat := queue{
@@ -362,7 +361,7 @@ func collectZmqAccums(address *string) {
 
 func processValueTx(db *badger.DB, tx *transaction) {
 
-	recttl := 15 * 24 * time.Hour	// 15 Days
+	recttl := 15 * 24 * time.Hour // 15 Days
 	err := db.Update(func(txn *badger.Txn) error {
 
 		key := fmt.Sprintf("%s", tx.Hash)
@@ -388,7 +387,7 @@ func processValueTx(db *badger.DB, tx *transaction) {
 
 func processConfirmedTx(db *badger.DB, tx *sn) {
 
-	recttl := 24 * time.Hour	// 1 Day
+	recttl := 24 * time.Hour // 1 Day
 	err := db.Update(func(txn *badger.Txn) error {
 		key := fmt.Sprintf("%s", tx.Hash)
 		val, err := txn.Get([]byte(key))
@@ -403,10 +402,10 @@ func processConfirmedTx(db *badger.DB, tx *sn) {
 
 			log.Infof("rec: %v.", rec)
 
-			rec.TxConfirmed = stoi(time.Now().UTC().Format("20060102150405")) 
-			v,_ = json.Marshal(rec)
+			rec.TxConfirmed = stoi(time.Now().UTC().Format("20060102150405"))
+			v, _ = json.Marshal(rec)
 			err = txn.SetWithTTL([]byte(key), v, recttl)
-			c := zmqConfirmation{label: getTxLabel(rec.TxValue), duration: float64(rec.TxConfirmed - rec.TxIn),}
+			c := zmqConfirmation{label: getTxLabel(rec.TxValue), duration: float64(rec.TxConfirmed - rec.TxIn)}
 			zmqConfirmationSet = append(zmqConfirmationSet, c)
 
 		} else {
@@ -418,7 +417,7 @@ func processConfirmedTx(db *badger.DB, tx *sn) {
 		if err != badger.ErrKeyNotFound {
 			log.Infof("BadgerDB error %v.", err)
 		}
-	} 
+	}
 }
 
 func badgerDBCleanup(db *badger.DB) {
@@ -438,4 +437,3 @@ func initZmq(address *string) {
 
 	go collectZmqAccums(address)
 }
-
