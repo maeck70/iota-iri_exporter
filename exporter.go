@@ -43,6 +43,7 @@ var (
 	listenAddress    = kingpin.Flag("web.listen-address", "Address to listen on for web interface and telemetry.").Default(":9311").String()
 	metricPath       = kingpin.Flag("web.telemetry-path", "Path under which to expose metrics.").Default("/metrics").String()
 	targetAddress    = kingpin.Flag("web.iri-path", "URI of the IOTA IRI Node to scrape.").Default("http://localhost:14265").String()
+	enableZmq        = kingpin.Flag("opt.zmq", "Enable ZMQ based metrics (database needed).").Default("true").Bool()
 	targetZmqAddress = kingpin.Flag("web.zmq-path", "URI of the IOTA IRI ZMQ Node to scrape.").Default("tcp://localhost:5556").String()
 	databasePath     = kingpin.Flag("db.database-path", "Path for the database.").Default("./iotabadgerdb").String()
 )
@@ -159,7 +160,9 @@ func main() {
 	exporter := newExporter(*targetAddress)
 	prometheus.MustRegister(exporter)
 
-	initZmq(targetZmqAddress)
+	if enableZmq {
+		initZmq(targetZmqAddress)
+	}
 
 	http.Handle(*metricPath, promhttp.Handler())
 	http.HandleFunc("/", func(w http.ResponseWriter, r *http.Request) {

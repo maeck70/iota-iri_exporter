@@ -270,6 +270,7 @@ func collectZmqAccums(address *string) {
 
 		log.Infof("Connected to IRI at address %s.", *address)
 
+		// Start Badger Database
 		opts := badger.DefaultOptions
 		opts.Dir = *databasePath
 		opts.ValueDir = *databasePath
@@ -279,6 +280,7 @@ func collectZmqAccums(address *string) {
 		}
 		defer db.Close()
 
+		// Run Database Cleanup on interval
 		go badgerDBCleanup(db)
 
 		for {
