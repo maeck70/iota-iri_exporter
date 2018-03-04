@@ -63,7 +63,7 @@ func must(err error) {
 	}
 }
 
-// BytesToString will convert a Bytes stream to a String datatype. 
+// BytesToString will convert a Bytes stream to a String datatype.
 // Input: []byte
 // Output: string
 func BytesToString(data []byte) string {

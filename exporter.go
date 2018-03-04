@@ -37,12 +37,13 @@ import (
 
 // Version is set during build to the git Describe version
 // (semantic version)-(commitish) form.
-var Version = "0.4.2"
+var Version = "0.4.3"
 
 var (
 	listenAddress    = kingpin.Flag("web.listen-address", "Address to listen on for web interface and telemetry.").Default(":9311").String()
 	metricPath       = kingpin.Flag("web.telemetry-path", "Path under which to expose metrics.").Default("/metrics").String()
 	targetAddress    = kingpin.Flag("web.iri-path", "URI of the IOTA IRI Node to scrape.").Default("http://localhost:14265").String()
+	enableBitfinex   = kingpin.Flag("bitfinex", "Enable Bitfinex market data feeds.").Default("true").Bool()
 	enableZmq        = kingpin.Flag("zmq", "Enable ZMQ based metrics (database required).").Default("true").Bool()
 	targetZmqAddress = kingpin.Flag("web.zmq-path", "URI of the IOTA IRI ZMQ Node to scrape.").Default("tcp://localhost:5556").String()
 	databasePath     = kingpin.Flag("db.database-path", "Path for the database.").Default("./iotabadgerdb").String()
@@ -137,8 +138,12 @@ func (e *exporter) scrape(ch chan<- prometheus.Metric) {
 
 	scrapeNodeinfo(e, api)
 	scrapeNeighbors(e, api)
-	scrapeZmq(e)
-	scrapeBitfinex(e)
+	if *enableZmq == true {
+		scrapeZmq(e)
+	}
+	if *enableBitfinex == true {
+		scrapeBitfinex(e)
+	}
 }
 
 func main() {
